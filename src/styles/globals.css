@@ -1,0 +1,151 @@
+/* Import react-phone-number-input styles */
+@import 'react-phone-number-input/style.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Phone Input Styles - Force consistent styling */
+.PhoneInput {
+  @apply flex items-center w-full px-4 py-4 text-base border border-gray-200 rounded-md focus-within:border-blue-400 focus-within:outline-none;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  min-height: 56px; /* h-14 equivalent */
+}
+
+.PhoneInput * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+.PhoneInputCountry {
+  @apply flex items-center pr-2 border-r border-gray-300;
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+.PhoneInputCountryIcon {
+  @apply w-6 h-4 object-cover;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  flex-shrink: 0;
+}
+
+.PhoneInputCountrySelect {
+  @apply ml-2 border-0 text-sm appearance-none;
+  cursor: pointer;
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.PhoneInputInput {
+  @apply flex-1 pl-3 text-sm outline-none;
+  border: none !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Override any inherited styles */
+.PhoneInput input,
+.PhoneInput select,
+.PhoneInput button {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Specific height adjustments for different contexts */
+div[class*="h-12"] .PhoneInput {
+  min-height: 48px;
+}
+
+div[class*="h-14"] .PhoneInput {
+  min-height: 56px;
+}
+
+/* Flag sprite positioning */
+.PhoneInputCountryIcon--IT {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3e%3cpath fill='%23009246' d='M0 0h1v2H0z'/%3e%3cpath fill='%23fff' d='M1 0h1v2H1z'/%3e%3cpath fill='%23ce2b37' d='M2 0h1v2H2z'/%3e%3c/svg%3e");
+}
+
+.PhoneInputCountryIcon--US {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3e%3cpath fill='%23fff' d='M0 0h3v2H0z'/%3e%3cpath fill='%23b22234' d='M0 0h3v.154H0zm0 .308h3v.154H0zm0 .308h3v.154H0zm0 .308h3v.154H0zm0 .308h3v.154H0zm0 .308h3v.154H0zm0 .308h3v.154H0z'/%3e%3cpath fill='%23002868' d='M0 0h1.2v1.077H0z'/%3e%3c/svg%3e");
+}
+
+.PhoneInputCountryIcon--GB {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3e%3cpath fill='%23012169' d='M0 0h3v2H0z'/%3e%3cpath fill='%23fff' d='m0 0 3 2M3 0 0 2'/%3e%3cpath fill='%23fff' d='M1.5 0v2M0 1h3'/%3e%3cpath fill='%23c8102e' d='m0 0 3 2M3 0 0 2' stroke-width='.5'/%3e%3cpath fill='%23c8102e' d='M1.5 0v2M0 1h3' stroke-width='.3'/%3e%3c/svg%3e");
+}
+
+.PhoneInputCountryIcon--FR {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3e%3cpath fill='%23002654' d='M0 0h1v2H0z'/%3e%3cpath fill='%23fff' d='M1 0h1v2H1z'/%3e%3cpath fill='%23ed2939' d='M2 0h1v2H2z'/%3e%3c/svg%3e");
+}
+
+.PhoneInputCountryIcon--DE {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3e%3cpath fill='%23000' d='M0 0h3v.667H0z'/%3e%3cpath fill='%23de0000' d='M0 .667h3v.666H0z'/%3e%3cpath fill='%23ffce00' d='M0 1.333h3V2H0z'/%3e%3c/svg%3e");
+}
+
+.PhoneInputCountryIcon--ES {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3e%3cpath fill='%23aa151b' d='M0 0h3v2H0z'/%3e%3cpath fill='%23f1bf00' d='M0 .5h3v1H0z'/%3e%3c/svg%3e");
+} 

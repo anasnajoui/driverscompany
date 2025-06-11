@@ -1,0 +1,176 @@
+{
+  "name": "Dental Logistics - Form to Email (Fixed)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dental-logistics",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-start",
+      "name": "Webhook - Form Data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transform form data into individual delivery rows\n// FIX: Access data from $input.first().json.body instead of $input.first().json\nconst formData = $input.first().json.body;\n\n// Generate base request ID\nconst baseRequestId = `REQ_${Date.now()}`;\nconst submissionDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD\n\n// Create array to store all delivery rows\nconst deliveryRows = [];\n\n// Process each recipient as separate delivery\nformData.recipients.forEach((recipient, index) => {\n  const deliveryId = `${baseRequestId}_${index + 1}`;\n  \n  // Create items summary\n  const itemsSummary = recipient.items.map(item => {\n    const type = item.type === 'altro' ? item.description : item.type.replace('_', ' ');\n    return type;\n  }).join(', ');\n  \n  // Special handling notes\n  const specialNotes = [];\n  if (recipient.items.some(item => item.fragile)) specialNotes.push('FRAGILE');\n  if (recipient.items.some(item => item.urgent)) specialNotes.push('URGENTE');\n  if (recipient.specialInstructions) specialNotes.push(recipient.specialInstructions);\n  \n  // Create delivery row for Google Sheets\n  const deliveryRow = {\n    ID: deliveryId,\n    DATA: formData.pickupDate,\n    STATO: 'In Attesa',\n    NOME_STUDIO: formData.companyName,\n    TELEFONO_STUDIO: formData.companyPhone,\n    INDIRIZZO_RITIRO: formData.pickupLocation,\n    ORARIO_RITIRO: formData.pickupTime,\n    CONSEGNA_A: recipient.destination,\n    TELEFONO_CONSEGNA: recipient.phoneNumber,\n    INDIRIZZO_CONSEGNA: recipient.shippingAddress,\n    COSA_CONSEGNARE: itemsSummary,\n    NOTE_SPECIALI: specialNotes.length > 0 ? specialNotes.join(' | ') : '',\n    AUTISTA: '',\n    RITIRO_FATTO: false,\n    CONSEGNA_FATTA: false\n  };\n  \n  deliveryRows.push({\n    deliveryData: deliveryRow,\n    originalForm: formData,\n    recipient: recipient\n  });\n});\n\nreturn deliveryRows;"
+      },
+      "id": "transform-data",
+      "name": "Transform Data (Fixed)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID", 
+        "sheetName": "Sheet1",
+        "columnToMatchOn": "A",
+        "valueInputMode": "RAW",
+        "usePathForKeyRow": true,
+        "keyRowPath": "deliveryData",
+        "options": {}
+      },
+      "id": "google-sheets",
+      "name": "Add to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate professional email HTML for each delivery\nconst data = $input.first().json;\nconst deliveryData = data.deliveryData;\nconst originalForm = data.originalForm;\nconst recipient = data.recipient;\n\n// Current date/time for generation timestamp\nconst currentDate = new Date().toLocaleDateString('it-IT');\nconst currentTime = new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});\n\n// Determine priority and colors (FIX: Safer access to NOTE_SPECIALI)\nconst noteSpeciali = deliveryData.NOTE_SPECIALI || '';\nconst isUrgent = noteSpeciali.includes('URGENTE');\nconst isFragile = noteSpeciali.includes('FRAGILE');\n\n// Generate professional email HTML with company logo and address\nconst emailHTML = `\n<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Nuova Consegna - ${deliveryData.ID}</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;\">\n    \n    <!-- Company Header with Logo -->\n    <div style=\"background: white; border-radius: 12px 12px 0 0; padding: 20px; text-align: center; border-bottom: 2px solid #4285f4;\">\n        <!-- Company logo placeholder - replace with actual logo URL -->\n        <div style=\"width: 80px; height: 80px; background: linear-gradient(135deg, #4285f4 0%, #2196f3 100%); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;\">CT</div>\n        \n        <h2 style=\"margin: 0; color: #2c3e50; font-size: 20px;\">COOPERATIVA TRASPORTI</h2>\n        <div style=\"margin: 8px 0; color: #666; font-size: 14px;\">\n            <strong>Via Oderzo 1, 33100 Udine</strong><br>\n            <strong>Tel: 0432-526200</strong>\n        </div>\n        <div style=\"background: #4285f4; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-top: 10px; font-size: 14px; font-weight: 600;\">\n            Servizio Logistico Dentale\n        </div>\n    </div>\n    \n    <!-- Main Content -->\n    <div style=\"background: linear-gradient(135deg, #4285f4 0%, #2196f3 100%); color: white; padding: 25px 20px; text-align: center;\">\n        <h1 style=\"margin: 0; font-size: 22px;\">🚚 Nuova Richiesta di Consegna</h1>\n        <p style=\"margin: 8px 0 0 0; opacity: 0.9; font-size: 16px;\">Bolla di Consegna Digitale</p>\n    </div>\n    \n    <div style=\"background: white; padding: 30px 20px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);\">\n        \n        <div style=\"background: #e8f5e8; color: #2e7d32; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; display: inline-block; margin-bottom: 20px;\">\n            🏷️ ID: ${deliveryData.ID}\n        </div>\n        \n        <p style=\"font-size: 16px; margin-bottom: 25px; color: #2c3e50;\">Ciao team! È arrivata una nuova richiesta di ritiro e consegna.</p>\n        \n        <!-- RITIRO -->\n        <div style=\"background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3;\">\n            <h3 style=\"color: #2c3e50; margin: 0 0 15px 0; display: flex; align-items: center; font-size: 16px;\">\n                <span style=\"font-size: 18px; margin-right: 8px;\">📤</span>\n                RITIRO DA\n            </h3>\n            <div style=\"display: grid; gap: 8px;\">\n                <div><strong>Studio:</strong> ${deliveryData.NOME_STUDIO}</div>\n                <div><strong>Indirizzo:</strong> ${deliveryData.INDIRIZZO_RITIRO}</div>\n                <div><strong>Data e Ora:</strong> ${deliveryData.DATA} - ${deliveryData.ORARIO_RITIRO}</div>\n                <div><strong>Telefono:</strong> ${deliveryData.TELEFONO_STUDIO}</div>\n            </div>\n        </div>\n        \n        <!-- CONSEGNA -->\n        <div style=\"background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;\">\n            <h3 style=\"color: #2c3e50; margin: 0 0 15px 0; display: flex; align-items: center; font-size: 16px;\">\n                <span style=\"font-size: 18px; margin-right: 8px;\">📥</span>\n                CONSEGNA A\n            </h3>\n            <div style=\"display: grid; gap: 8px;\">\n                <div><strong>Destinatario:</strong> ${deliveryData.CONSEGNA_A}</div>\n                <div><strong>Indirizzo:</strong> ${deliveryData.INDIRIZZO_CONSEGNA}</div>\n                <div><strong>Telefono:</strong> ${deliveryData.TELEFONO_CONSEGNA}</div>\n                <div>\n                    <strong>Materiali:</strong> ${deliveryData.COSA_CONSEGNARE}\n                    ${isUrgent ? '<span style=\"background: #f44336; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;\">URGENTE</span>' : ''}\n                    ${isFragile ? '<span style=\"background: #ff9800; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px;\">FRAGILE</span>' : ''}\n                </div>\n            </div>\n        </div>\n        \n        ${noteSpeciali ? `\n        <div style=\"background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 20px 0;\">\n            <div style=\"display: flex; align-items: center; margin-bottom: 8px;\">\n                <span style=\"font-size: 18px; margin-right: 8px;\">⚠️</span>\n                <strong style=\"color: #856404;\">NOTE SPECIALI:</strong>\n            </div>\n            <div style=\"color: #856404; font-size: 14px; line-height: 1.4;\">${noteSpeciali}</div>\n        </div>\n        ` : ''}\n        \n        <!-- Print Section for Delivery Slip -->\n        <div style=\"background: #f8f9fa; border: 2px dashed #ccc; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;\">\n            <div style=\"font-size: 16px; margin-bottom: 10px;\">📋</div>\n            <strong style=\"color: #2c3e50;\">Bolla di Consegna</strong><br>\n            <small style=\"color: #666;\">Stampare per firma del destinatario</small>\n        </div>\n        \n        <div style=\"text-align: center; margin: 30px 0;\">\n            <p style=\"color: #666; margin-bottom: 5px;\">Per qualsiasi domanda, contattateci immediatamente.</p>\n            <p style=\"font-weight: bold; color: #2c3e50; margin: 0;\">Buon lavoro! 🚀</p>\n        </div>\n        \n    </div>\n    \n    <!-- Footer -->\n    <div style=\"background: #f1f3f4; padding: 20px; text-align: center; border-radius: 8px; margin-top: 20px; color: #666; font-size: 14px;\">\n        <div style=\"font-weight: 600; color: #2c3e50; margin-bottom: 5px;\">🚚 COOPERATIVA TRASPORTI</div>\n        <div style=\"margin-bottom: 8px;\">Via Oderzo 1, 33100 Udine - Tel: 0432-526200</div>\n        <div style=\"font-size: 12px; color: #888;\">\n            Email generata automaticamente il ${currentDate} alle ${currentTime}<br>\n            Sistema Logistica Dentale - Non rispondere a questa email\n        </div>\n    </div>\n    \n</body>\n</html>\n`;\n\nreturn [{\n  deliveryData,\n  originalForm,\n  recipient,\n  html: emailHTML\n}];"
+      },
+      "id": "generate-html",
+      "name": "Generate Email HTML (Fixed)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "authentication": "genericCredentialType", 
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api-key",
+              "value": "YOUR_BREVO_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sender",
+              "value": "={\"name\": \"Sistema Logistica Dentale\", \"email\": \"logistics@your-consulting-studio.com\"}"
+            },
+            {
+              "name": "to",
+              "value": "=[{\"email\": \"drivers@cooperativatrasporti.it\", \"name\": \"Team Drivers\"}]"
+            },
+            {
+              "name": "subject",
+              "value": "=🚚 Nuova Consegna - {{ $('generate-html').first().json.deliveryData.ID }} - {{ $('generate-html').first().json.deliveryData.NOME_STUDIO }}"
+            },
+            {
+              "name": "htmlContent",
+              "value": "={{ $('generate-html').first().json.html }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-email-brevo",
+      "name": "Send Email via Brevo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true, \"message\": \"Richiesta ricevuta e processata con successo\", \"deliveries\": {{ $('transform-data').all().length }}}",
+        "options": {}
+      },
+      "id": "response",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Form Data": {
+      "main": [
+        [
+          {
+            "node": "Transform Data (Fixed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Data (Fixed)": {
+      "main": [
+        [
+          {
+            "node": "Add to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Generate Email HTML (Fixed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Email HTML (Fixed)": {
+      "main": [
+        [
+          {
+            "node": "Send Email via Brevo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email via Brevo": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null
+} 

@@ -1,0 +1,23 @@
+{
+    "parameters": {
+      "method": "POST",
+      "url": "https://api.html-css-to-image.com/v1/image",
+      "authentication": "genericCredentialType",
+      "genericAuthType": "httpBasicAuth",
+      "sendHeaders": true,
+      "headerParameters": {
+        "parameters": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "sendBody": true,
+      "specifyBody": "json",
+      "jsonBody": "={\n  \"html\": {{ JSON.stringify($json.html) }},\n  \"format\": \"pdf\",\n  \"width\": 794,\n  \"height\": 1123,\n  \"quality\": 100\n}",
+      "options": {}
+    },
+    "type": "n8n-nodes-base.httpRequest",
+    "name": "Generate PDF"
+  }

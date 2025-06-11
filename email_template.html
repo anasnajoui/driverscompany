@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuova Richiesta di Consegna</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .email-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4285f4 0%, #2196f3 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #4285f4;
+        }
+        
+        .pickup-section {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        
+        .delivery-section {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title .icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+        
+        .info-row {
+            margin: 8px 0;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #555;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+        
+        .urgent {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+        
+        .fragile {
+            background: #fff3e0;
+            color: #ef6c00;
+            border: 1px solid #ff9800;
+        }
+        
+        .attachment-notice {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .attachment-notice .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .cta {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #4285f4 0%, #2196f3 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+        }
+        
+        .footer {
+            background: #f1f3f4;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .company-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .request-id {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+            }
+            
+            .info-label {
+                min-width: auto;
+                margin-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🚚 Nuova Richiesta di Consegna</h1>
+            <p class="subtitle">Sistema Logistica Dentale</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Ciao team! 👋
+            </div>
+            
+            <p>È arrivata una nuova richiesta di ritiro e consegna dal nostro sistema di logistica dentale.</p>
+            
+            <div class="request-id">
+                🏷️ ID Richiesta: <span id="request-id">REQ_XXXXX</span>
+            </div>
+            
+            <div class="info-section pickup-section">
+                <div class="section-title">
+                    <span class="icon">📤</span>
+                    RITIRO DA
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Studio:</span>
+                    <span class="info-value" id="studio-name">Nome Studio</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Indirizzo:</span>
+                    <span class="info-value" id="pickup-address">Indirizzo di ritiro</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Data e Ora:</span>
+                    <span class="info-value">
+                        <span id="pickup-date">Data</span> - <span id="pickup-time">Orario</span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Telefono:</span>
+                    <span class="info-value" id="studio-phone">Telefono studio</span>
+                </div>
+            </div>
+            
+            <div class="info-section delivery-section">
+                <div class="section-title">
+                    <span class="icon">📥</span>
+                    CONSEGNA A
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Destinatario:</span>
+                    <span class="info-value" id="recipient-name">Nome destinatario</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Indirizzo:</span>
+                    <span class="info-value" id="delivery-address">Indirizzo di consegna</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Telefono:</span>
+                    <span class="info-value" id="recipient-phone">Telefono destinatario</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Materiali:</span>
+                    <span class="info-value" id="materials">Elenco materiali</span>
+                    <span id="priority-badges"></span>
+                </div>
+                <div class="info-row" id="special-notes-row" style="display: none;">
+                    <span class="info-label">⚠️ Note Speciali:</span>
+                    <span class="info-value" id="special-notes">Note speciali</span>
+                </div>
+            </div>
+            
+            <div class="attachment-notice">
+                <span class="icon">📎</span>
+                <strong>Bolla di Consegna Allegata</strong><br>
+                Troverai la bolla di consegna completa in allegato, <br>
+                pronta per la stampa e la firma del destinatario.
+            </div>
+            
+            <div class="cta">
+                <a href="#" class="button">📋 Apri Dashboard Consegne</a>
+            </div>
+            
+            <p style="text-align: center; color: #666; margin-top: 30px;">
+                Per qualsiasi domanda, contattateci immediatamente.<br>
+                <strong>Buon lavoro!</strong>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <div>
+                🚚 <strong>Cooperativa Trasporti</strong><br>
+                Servizio Logistico Dentale Professionale
+            </div>
+            <div class="company-info">
+                Email: drivers@cooperativatrasporti.it<br>
+                Sistema automatico - Non rispondere a questa email
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Questo script verrà sostituito dai dati reali in n8n
+        // Esempio di come i dati verranno popolati:
+        
+        // document.getElementById('request-id').textContent = 'REQ_1701234567_1';
+        // document.getElementById('studio-name').textContent = 'Studio Dentistico Bianchi';
+        // document.getElementById('pickup-address').textContent = 'Via Roma 123, 33100 Udine';
+        // document.getElementById('pickup-date').textContent = '15/12/2024';
+        // document.getElementById('pickup-time').textContent = '10:00-11:00';
+        // document.getElementById('studio-phone').textContent = '+39 0432 123456';
+        // document.getElementById('recipient-name').textContent = 'Laboratorio Rossi';
+        // document.getElementById('delivery-address').textContent = 'Via Venezia 456, 33100 Udine';
+        // document.getElementById('recipient-phone').textContent = '+39 0432 654321';
+        // document.getElementById('materials').textContent = 'Impronte Dentali, Protesi Fissa';
+        
+        // Gestione priorità
+        // const priorityBadges = document.getElementById('priority-badges');
+        // if (isUrgent) {
+        //     priorityBadges.innerHTML += '<span class="priority-badge urgent">Urgente</span>';
+        // }
+        // if (isFragile) {
+        //     priorityBadges.innerHTML += '<span class="priority-badge fragile">Fragile</span>';
+        // }
+        
+        // Gestione note speciali
+        // if (specialNotes) {
+        //     document.getElementById('special-notes').textContent = specialNotes;
+        //     document.getElementById('special-notes-row').style.display = 'flex';
+        // }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,176 @@
+{
+  "name": "Dental Logistics - Form to Email PDF",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dental-logistics",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-start",
+      "name": "Webhook - Form Data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transform form data into individual delivery rows\nconst formData = $input.first().json;\n\n// Generate base request ID\nconst baseRequestId = `REQ_${Date.now()}`;\nconst submissionDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD\n\n// Create array to store all delivery rows\nconst deliveryRows = [];\n\n// Process each recipient as separate delivery\nformData.recipients.forEach((recipient, index) => {\n  const deliveryId = `${baseRequestId}_${index + 1}`;\n  \n  // Create items summary\n  const itemsSummary = recipient.items.map(item => {\n    const type = item.type === 'altro' ? item.description : item.type.replace('_', ' ');\n    return type;\n  }).join(', ');\n  \n  // Special handling notes\n  const specialNotes = [];\n  if (recipient.items.some(item => item.fragile)) specialNotes.push('FRAGILE');\n  if (recipient.items.some(item => item.urgent)) specialNotes.push('URGENTE');\n  if (recipient.specialInstructions) specialNotes.push(recipient.specialInstructions);\n  \n  // Create delivery row for Google Sheets\n  const deliveryRow = {\n    ID: deliveryId,\n    DATA: formData.pickupDate,\n    STATO: 'In Attesa',\n    NOME_STUDIO: formData.companyName,\n    TELEFONO_STUDIO: formData.companyPhone,\n    INDIRIZZO_RITIRO: formData.pickupLocation,\n    ORARIO_RITIRO: formData.pickupTime,\n    CONSEGNA_A: recipient.destination,\n    TELEFONO_CONSEGNA: recipient.phoneNumber,\n    INDIRIZZO_CONSEGNA: recipient.shippingAddress,\n    COSA_CONSEGNARE: itemsSummary,\n    NOTE_SPECIALI: specialNotes.join(' | '),\n    AUTISTA: '',\n    RITIRO_FATTO: false,\n    CONSEGNA_FATTA: false\n  };\n  \n  deliveryRows.push({\n    deliveryData: deliveryRow,\n    originalForm: formData,\n    recipient: recipient\n  });\n});\n\nreturn deliveryRows;"
+      },
+      "id": "transform-data",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID", 
+        "sheetName": "Sheet1",
+        "columnToMatchOn": "A",
+        "valueInputMode": "RAW",
+        "usePathForKeyRow": true,
+        "keyRowPath": "deliveryData",
+        "options": {}
+      },
+      "id": "google-sheets",
+      "name": "Add to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate professional email HTML for each delivery\nconst data = $input.first().json;\nconst deliveryData = data.deliveryData;\nconst originalForm = data.originalForm;\nconst recipient = data.recipient;\n\n// Current date/time for generation timestamp\nconst currentDate = new Date().toLocaleDateString('it-IT');\nconst currentTime = new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});\n\n// Determine priority and colors\nconst isUrgent = deliveryData.NOTE_SPECIALI && deliveryData.NOTE_SPECIALI.includes('URGENTE');\nconst isFragile = deliveryData.NOTE_SPECIALI && deliveryData.NOTE_SPECIALI.includes('FRAGILE');\n\n// Generate professional email HTML\nconst emailHTML = `\n<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Nuova Consegna - ${deliveryData.ID}</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;\">\n    \n    <div style=\"background: linear-gradient(135deg, #4285f4 0%, #2196f3 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 12px 12px 0 0;\">\n        <h1 style=\"margin: 0; font-size: 24px;\">🚚 Nuova Richiesta di Consegna</h1>\n        <p style=\"margin: 10px 0 0 0; opacity: 0.9;\">Sistema Logistica Dentale</p>\n    </div>\n    \n    <div style=\"background: white; padding: 30px 20px; border: 1px solid #ddd; border-top: none;\">\n        \n        <div style=\"background: #e8f5e8; color: #2e7d32; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; display: inline-block; margin-bottom: 20px;\">\n            🏷️ ID: ${deliveryData.ID}\n        </div>\n        \n        <p style=\"font-size: 16px; margin-bottom: 20px;\">Ciao team! È arrivata una nuova richiesta di ritiro e consegna.</p>\n        \n        <!-- RITIRO -->\n        <div style=\"background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3;\">\n            <h3 style=\"color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center;\">\n                <span style=\"font-size: 20px; margin-right: 8px;\">📤</span>\n                RITIRO DA\n            </h3>\n            <p><strong>Studio:</strong> ${deliveryData.NOME_STUDIO}</p>\n            <p><strong>Indirizzo:</strong> ${deliveryData.INDIRIZZO_RITIRO}</p>\n            <p><strong>Data e Ora:</strong> ${deliveryData.DATA} - ${deliveryData.ORARIO_RITIRO}</p>\n            <p><strong>Telefono:</strong> ${deliveryData.TELEFONO_STUDIO}</p>\n        </div>\n        \n        <!-- CONSEGNA -->\n        <div style=\"background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;\">\n            <h3 style=\"color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center;\">\n                <span style=\"font-size: 20px; margin-right: 8px;\">📥</span>\n                CONSEGNA A\n            </h3>\n            <p><strong>Destinatario:</strong> ${deliveryData.CONSEGNA_A}</p>\n            <p><strong>Indirizzo:</strong> ${deliveryData.INDIRIZZO_CONSEGNA}</p>\n            <p><strong>Telefono:</strong> ${deliveryData.TELEFONO_CONSEGNA}</p>\n            <p><strong>Materiali:</strong> ${deliveryData.COSA_CONSEGNARE} \n                ${isUrgent ? '<span style=\"background: #f44336; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-left: 8px;\">URGENTE</span>' : ''}\n                ${isFragile ? '<span style=\"background: #ff9800; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-left: 8px;\">FRAGILE</span>' : ''}\n            </p>\n        </div>\n        \n        ${deliveryData.NOTE_SPECIALI ? `\n        <div style=\"background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 15px 0;\">\n            <strong>⚠️ NOTE SPECIALI:</strong><br>\n            ${deliveryData.NOTE_SPECIALI}\n        </div>\n        ` : ''}\n        \n        <div style=\"text-align: center; margin: 30px 0;\">\n            <p style=\"color: #666;\">Per qualsiasi domanda, contattateci immediatamente.</p>\n            <p style=\"font-weight: bold;\">Buon lavoro! 🚀</p>\n        </div>\n        \n    </div>\n    \n    <div style=\"background: #f1f3f4; padding: 20px; text-align: center; border-radius: 0 0 12px 12px; color: #666; font-size: 14px;\">\n        <div>🚚 <strong>Cooperativa Trasporti</strong></div>\n        <div>Servizio Logistico Dentale Professionale</div>\n        <div style=\"margin-top: 10px; font-size: 12px; color: #888;\">\n            Email generata automaticamente il ${currentDate} alle ${currentTime}\n        </div>\n    </div>\n    \n</body>\n</html>\n`;\n\nreturn [{\n  deliveryData,\n  originalForm,\n  recipient,\n  html: emailHTML\n}];"
+      },
+      "id": "generate-html",
+      "name": "Generate Email HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.brevo.com/v3/smtp/email",
+        "authentication": "genericCredentialType", 
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api-key",
+              "value": "YOUR_BREVO_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "sender",
+              "value": "={\"name\": \"Sistema Logistica Dentale\", \"email\": \"logistics@your-consulting-studio.com\"}"
+            },
+            {
+              "name": "to",
+              "value": "=[{\"email\": \"drivers@cooperativatrasporti.it\", \"name\": \"Team Drivers\"}]"
+            },
+            {
+              "name": "subject",
+              "value": "=🚚 Nuova Consegna - {{ $('generate-html').first().json.deliveryData.ID }} - {{ $('generate-html').first().json.deliveryData.NOME_STUDIO }}"
+            },
+            {
+              "name": "htmlContent",
+              "value": "={{ $('generate-html').first().json.html }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-email-brevo",
+      "name": "Send Email via Brevo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true, \"message\": \"Richiesta ricevuta e processata con successo\", \"deliveries\": {{ $('transform-data').all().length }}}",
+        "options": {}
+      },
+      "id": "response",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Form Data": {
+      "main": [
+        [
+          {
+            "node": "Transform Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Data": {
+      "main": [
+        [
+          {
+            "node": "Add to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Generate HTML Slip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Email HTML": {
+      "main": [
+        [
+          {
+            "node": "Send Email via Brevo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email via Brevo": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null
+} 
