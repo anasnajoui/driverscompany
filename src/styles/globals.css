@@ -58,16 +58,48 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Enhanced typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    letter-spacing: -0.025em;
+  }
+  
+  /* Improved focus styles */
+  *:focus-visible {
+    outline: 2px solid rgb(59 130 246);
+    outline-offset: 2px;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Better selection colors */
+  ::selection {
+    background-color: rgb(59 130 246 / 0.2);
+    color: rgb(30 64 175);
   }
 }
 
-/* Phone Input Styles - Force consistent styling */
+/* Enhanced Phone Input Styles */
 .PhoneInput {
-  @apply flex items-center w-full px-4 py-4 text-base border border-gray-200 rounded-md focus-within:border-blue-400 focus-within:outline-none;
+  @apply flex items-center w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-xl focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 focus-within:outline-none transition-all duration-200;
   background-color: #ffffff !important;
   background: #ffffff !important;
   min-height: 56px; /* h-14 equivalent */
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.PhoneInput:hover {
+  @apply border-gray-300;
 }
 
 .PhoneInput * {
@@ -76,7 +108,7 @@
 }
 
 .PhoneInputCountry {
-  @apply flex items-center pr-2 border-r border-gray-300;
+  @apply flex items-center pr-3 border-r border-gray-300;
   background-color: transparent !important;
   background: transparent !important;
 }
@@ -90,7 +122,7 @@
 }
 
 .PhoneInputCountrySelect {
-  @apply ml-2 border-0 text-sm appearance-none;
+  @apply ml-2 border-0 text-base appearance-none font-medium;
   cursor: pointer;
   background-color: transparent !important;
   background: transparent !important;
@@ -99,7 +131,7 @@
 }
 
 .PhoneInputInput {
-  @apply flex-1 pl-3 text-sm outline-none;
+  @apply flex-1 pl-4 text-lg outline-none;
   border: none !important;
   background-color: transparent !important;
   background: transparent !important;
@@ -123,6 +155,60 @@ div[class*="h-12"] .PhoneInput {
 
 div[class*="h-14"] .PhoneInput {
   min-height: 56px;
+}
+
+div[class*="h-16"] .PhoneInput {
+  min-height: 64px;
+}
+
+/* Enhanced button animations */
+button {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Enhanced card shadows */
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Improved form field animations */
+input, textarea, select {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+input:focus, textarea:focus, select:focus {
+  transform: translateY(-1px);
+}
+
+/* Better loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Enhanced gradient backgrounds */
+.bg-gradient-to-br {
+  background-size: 400% 400%;
+  animation: gradientShift 10s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Flag sprite positioning */

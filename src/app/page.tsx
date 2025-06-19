@@ -245,44 +245,52 @@ const DentalLogisticsForm: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 p-3 sm:p-6 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4 sm:p-6 flex items-center justify-center">
       <div className="w-full max-w-4xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-10">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <img 
+              src="/driverslogo.png" 
+              alt="Drivers Logo" 
+              className="h-18 sm:h-24 w-auto drop-shadow-sm"
+            />
+          </div>
+          
+          <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
             🚚 Logistica Professionale Semplificata
           </h1>
-          <p className="text-lg text-gray-600 leading-relaxed max-w-3xl mx-auto mb-4">
-            <strong className="text-gray-800">Risparmiate tempo prezioso.</strong> Ritiamo dal vostro ufficio e consegniamo ovunque serva - fornitori, clienti, partner. 
-          </p>
-          <p className="text-base text-blue-600 font-medium">
-            ✅ Ritiro in giornata • ✅ Tracciamento completo • ✅ Assicurazione inclusa
+          <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto mb-6 font-medium">
+            <span className="text-gray-800 font-semibold">Risparmiate tempo prezioso.</span> Ritiamo dal vostro ufficio e consegniamo ovunque serva - fornitori, clienti, partner. 
           </p>
           
           {/* Progress Indicator */}
-          <div className="flex justify-center mt-6">
-            <div className="flex items-center space-x-4 text-xs sm:text-sm">
-              <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-                  1
+          <div className="flex justify-center mt-8">
+            <div className="bg-white rounded-full p-2 shadow-lg border border-gray-100">
+              <div className="flex items-center space-x-6 text-sm sm:text-base px-4 py-2">
+                <div className={`flex items-center transition-all duration-300 ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 font-semibold transition-all duration-300 ${currentStep >= 1 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-500'}`}>
+                    1
+                  </div>
+                  <span className="hidden sm:inline font-medium">Informazioni Azienda</span>
+                  <span className="sm:hidden font-medium">Azienda</span>
                 </div>
-                <span className="hidden sm:inline">Informazioni Azienda</span>
-                <span className="sm:hidden">Azienda</span>
-              </div>
-              <div className={`w-8 h-px ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`} />
-              <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-2 ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-                  2
+                <div className={`w-12 h-0.5 transition-all duration-300 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`} />
+                <div className={`flex items-center transition-all duration-300 ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 font-semibold transition-all duration-300 ${currentStep >= 2 ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-500'}`}>
+                    2
+                  </div>
+                  <span className="hidden sm:inline font-medium">Destinazioni</span>
+                  <span className="sm:hidden font-medium">Consegne</span>
                 </div>
-                <span className="hidden sm:inline">Destinazioni</span>
-                <span className="sm:hidden">Consegne</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Form Card */}
-        <Card className="bg-white shadow-sm border border-blue-100">
+        <Card className="bg-white shadow-xl border-0 rounded-2xl overflow-hidden">
           {/* Step Content */}
           {currentStep === 1 && (
             <StudioInformationStep
@@ -304,13 +312,13 @@ const DentalLogisticsForm: React.FC = () => {
           )}
 
           {/* Navigation */}
-          <div className="border-t border-blue-50 p-6 bg-gray-50">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="border-t border-gray-100 p-8 bg-gray-50/50">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
               {currentStep > 1 ? (
                 <Button 
                   variant="outline" 
                   onClick={prevStep}
-                  className="border-gray-300 text-gray-600 hover:bg-gray-100 h-14 px-8 w-full sm:w-auto rounded-xl text-lg"
+                  className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 h-16 px-10 w-full sm:w-auto rounded-xl text-lg font-medium transition-all duration-200"
                 >
                   <ArrowLeft className="h-5 w-5 mr-3" />
                   Indietro
@@ -323,20 +331,20 @@ const DentalLogisticsForm: React.FC = () => {
                 <div className="text-center w-full sm:w-auto">
                   <Button 
                     onClick={nextStep} 
-                    className="bg-blue-600 hover:bg-blue-700 text-white h-14 px-8 text-lg font-medium w-full sm:w-auto rounded-xl shadow-lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-16 px-10 text-lg font-semibold w-full sm:w-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                   >
-                    <span className="hidden sm:inline">Avanti 👉</span>
-                    <span className="sm:hidden">Avanti 👉</span>
+                    <span className="hidden sm:inline">Continua 👉</span>
+                    <span className="sm:hidden">Continua 👉</span>
                     <ArrowRight className="h-5 w-5 ml-3" />
                   </Button>
-                  <p className="text-sm text-gray-500 mt-3">Completa tutti i campi per continuare</p>
+                  <p className="text-sm text-gray-500 mt-4 font-medium">Completa tutti i campi per continuare</p>
                 </div>
               ) : (
-                <div className="text-center w-full sm:w-auto space-y-3">
+                <div className="text-center w-full sm:w-auto space-y-4">
                   <Button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white h-14 px-8 text-lg font-medium w-full sm:w-auto rounded-xl shadow-lg"
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white h-16 px-10 text-lg font-semibold w-full sm:w-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     {isLoading ? (
                       <>
@@ -353,8 +361,8 @@ const DentalLogisticsForm: React.FC = () => {
                     )}
                   </Button>
                   
-                  <p className="text-sm text-gray-500 mt-3">
-                    {isLoading ? 'Elaborazione in corso...' : 'Vi contatteremo per confermare'}
+                  <p className="text-sm text-gray-500 mt-4 font-medium">
+                    {isLoading ? 'Elaborazione in corso...' : 'Vi contatteremo per confermare la richiesta'}
                   </p>
                 </div>
               )}

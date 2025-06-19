@@ -29,8 +29,7 @@ export const SubmissionRecap: React.FC<SubmissionRecapProps> = ({ data, onReset 
               <div><strong className="text-gray-600">Tempistiche Ritiro:</strong> {
                 data.pickupTime === 'standard' ? 'Standard: Entro le 18:00' :
                 data.pickupTime === 'morning' ? 'Mattina: 8:00-12:00' :
-                data.pickupTime === 'afternoon' ? 'Pomeriggio: 14:00-18:00' :
-                data.pickupTime === 'urgent' ? 'Urgente: Entro 2 ore' : data.pickupTime
+                data.pickupTime === 'afternoon' ? 'Pomeriggio: 14:00-18:00' : data.pickupTime
               }</div>
               <div className="sm:col-span-2"><strong className="text-gray-600">Indirizzo Ritiro:</strong> {data.pickupLocation}</div>
               <div className="sm:col-span-2"><strong className="text-gray-600">Tipo di Ritiro:</strong> {data.recipients.length > 1 ? 'Ritiro Multiplo' : 'Ritiro Singolo'}</div>
