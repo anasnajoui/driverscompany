@@ -1,0 +1,29 @@
+{
+  "name": "Drivers Company - Logistica Professionale",
+  "short_name": "Drivers Company",
+  "description": "Servizio logistico professionale per aziende. Ritiro e consegna in tutta Italia.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/driverslogo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/driverslogo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "logistics", "transportation"],
+  "lang": "it",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false
+} 
