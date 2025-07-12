@@ -98,27 +98,46 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
               </div>
             </div>
 
-            <div className="mt-6">
-              <Label htmlFor={`address-${recipient.id}`} className="text-lg font-semibold text-gray-800">
-                Indirizzo di Consegna *
-              </Label>
-              <Textarea
-                id={`address-${recipient.id}`}
-                value={recipient.shippingAddress}
-                onChange={(e) => onUpdate('shippingAddress', e.target.value)}
-                placeholder="Es. Via Verdi 456, 20121 Milano MI&#10;Primo piano, interno 3"
-                rows={4}
-                className={`border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 mt-3 placeholder:text-gray-400 rounded-xl transition-all duration-200 ${
-                  validationErrors[`recipient-${index}-address`] ? 'border-red-300 focus:border-red-500 focus:ring-red-100' : ''
-                }`}
-                required
-              />
-              {validationErrors[`recipient-${index}-address`] && (
-                <p className="text-base text-red-600 mt-3 font-medium">{validationErrors[`recipient-${index}-address`]}</p>
-              )}
-              {!validationErrors[`recipient-${index}-address`] && (
-                <p className="text-sm text-gray-500 mt-3">Include dettagli come piano, interno, citofono</p>
-              )}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor={`address-${recipient.id}`} className="text-lg font-semibold text-gray-800">
+                  Indirizzo di Consegna *
+                </Label>
+                <Textarea
+                  id={`address-${recipient.id}`}
+                  value={recipient.shippingAddress}
+                  onChange={(e) => onUpdate('shippingAddress', e.target.value)}
+                  placeholder="Es. Via Verdi 456, 20121 Milano MI&#10;Primo piano, interno 3"
+                  rows={2}
+                  className={`border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400 rounded-xl transition-all duration-200 ${
+                    validationErrors[`recipient-${index}-address`] ? 'border-red-300 focus:border-red-500 focus:ring-red-100' : ''
+                  }`}
+                  required
+                />
+                {validationErrors[`recipient-${index}-address`] && (
+                  <p className="text-base text-red-600 font-medium">{validationErrors[`recipient-${index}-address`]}</p>
+                )}
+                {!validationErrors[`recipient-${index}-address`] && (
+                  <p className="text-sm text-gray-500">Include dettagli come piano, interno, citofono</p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor={`deliveryTime-${recipient.id}`} className="text-lg font-semibold text-gray-800">
+                  Orario di Consegna
+                </Label>
+                <select
+                  id={`deliveryTime-${recipient.id}`}
+                  value={recipient.deliveryTime}
+                  onChange={(e) => onUpdate('deliveryTime', e.target.value)}
+                  className="w-full text-lg px-6 py-4 h-14 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-700 transition-all duration-200"
+                >
+                  <option value="standard">Standard (entro le 18:00)</option>
+                  <option value="morning">Mattina (8:00-12:00)</option>
+                  <option value="afternoon">Pomeriggio (14:00-18:00)</option>
+                </select>
+                <p className="text-sm text-gray-500">Preferenza di orario per la consegna</p>
+              </div>
             </div>
           </div>
 

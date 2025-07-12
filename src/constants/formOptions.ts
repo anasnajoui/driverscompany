@@ -5,6 +5,7 @@ export const createNewRecipient = () => ({
   destination: '',
   phoneNumber: '',
   shippingAddress: '',
+  deliveryTime: 'standard',
   specialInstructions: '',
 });
 

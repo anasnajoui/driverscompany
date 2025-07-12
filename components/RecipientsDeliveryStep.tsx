@@ -28,11 +28,8 @@ export const RecipientsDeliveryStep: React.FC<RecipientsDeliveryStepProps> = ({
     <>
       <CardHeader className="border-b border-gray-100 p-10">
         <CardTitle className="text-3xl font-bold text-gray-900 mb-4 tracking-tight">
-          Dove dobbiamo portare il materiale?
+          Destinatario
         </CardTitle>
-        <p className="text-lg text-gray-600 leading-relaxed font-medium">
-          Indicateci semplicemente dove dobbiamo portare il materiale che ritireremo dalla vostra azienda
-        </p>
       </CardHeader>
       <CardContent className="p-10 space-y-10">
         {formData.recipients.map((recipient, index) => (

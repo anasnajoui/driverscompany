@@ -8,6 +8,7 @@ export interface Recipient {
   destination: string;
   phoneNumber: string;
   shippingAddress: string;
+  deliveryTime: string;
   specialInstructions: string;
 }
 

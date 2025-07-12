@@ -22,19 +22,11 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
 
   return (
     <>
-      <CardHeader className="border-b border-gray-100 p-10">
-        <CardTitle className="text-3xl font-bold text-gray-900 mb-4 tracking-tight">
-          Iniziamo dalla vostra azienda
-        </CardTitle>
-        <p className="text-lg text-gray-600 leading-relaxed font-medium">
-          Bastano pochi dettagli per organizzare tutto. Ci vogliono solo 2 minuti per completare la richiesta.
-        </p>
-      </CardHeader>
       <CardContent className="p-10 space-y-12">
         {/* Studio Contact Information */}
         <div className="space-y-8">
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-8 pb-2 border-b border-gray-100">Come vi chiamate?</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-8 pb-2 border-b border-gray-100">Mittente</h3>
             <div className="space-y-6">
               <div>
                 <Label htmlFor="companyName" className="text-lg font-semibold text-gray-800 mb-3 block">
