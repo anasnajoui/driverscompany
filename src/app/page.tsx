@@ -78,12 +78,6 @@ const DentalLogisticsForm: React.FC = () => {
         errors[`recipient-${index}-destination`] = 'Nome destinatario obbligatorio';
       }
       
-      if (!recipient.phoneNumber.trim()) {
-        errors[`recipient-${index}-phone`] = 'Telefono destinatario obbligatorio';
-      } else if (!validatePhone(recipient.phoneNumber)) {
-        errors[`recipient-${index}-phone`] = 'Numero di telefono non valido';
-      }
-      
       if (!recipient.shippingAddress.trim()) {
         errors[`recipient-${index}-address`] = 'Indirizzo consegna obbligatorio';
       }
@@ -165,7 +159,7 @@ const DentalLogisticsForm: React.FC = () => {
 
     // Clear validation errors for this recipient field
     const recipientIndex = formData.recipients.findIndex(r => r.id === id);
-    const errorKey = `recipient-${recipientIndex}-${field === 'phoneNumber' ? 'phone' : field === 'shippingAddress' ? 'address' : field}`;
+    const errorKey = `recipient-${recipientIndex}-${field === 'shippingAddress' ? 'address' : field}`;
     
     if (validationErrors[errorKey]) {
       setValidationErrors(prev => {
@@ -173,16 +167,6 @@ const DentalLogisticsForm: React.FC = () => {
         delete updated[errorKey];
         return updated;
       });
-    }
-
-    // Real-time validation for recipient phone numbers
-    if (field === 'phoneNumber' && value) {
-      if (!validatePhone(value)) {
-        setValidationErrors(prev => ({
-          ...prev,
-          [errorKey]: 'Formato telefono non valido'
-        }));
-      }
     }
   };
 
