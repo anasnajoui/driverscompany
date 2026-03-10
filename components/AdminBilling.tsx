@@ -11,7 +11,6 @@ import {
   Package,
   Truck,
   Settings,
-  Download,
   RefreshCw,
   AlertCircle,
   Search,
@@ -317,18 +316,6 @@ export const AdminBilling: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Export Placeholder */}
-      <div className="flex justify-center pt-2 pb-4">
-        <Button
-          disabled
-          title="Prossimamente"
-          className="rounded-xl px-8 h-11 opacity-50 cursor-not-allowed"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Esporta CSV
-        </Button>
       </div>
     </div>
   );
