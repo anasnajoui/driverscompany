@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormData, Recipient } from '../types/form';
+import { getSenderProfile, saveSenderProfile, saveRecipient } from '../services/localStorage';
+import { defaultStructuredHours } from '../../components/StudioHoursSelector';
 import { initialFormData, createNewRecipient } from '../constants/formOptions';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { StudioInformationStep } from '../../components/StudioInformationStep';
 import { RecipientsDeliveryStep } from '../../components/RecipientsDeliveryStep';
 import { SubmissionRecap } from '../../components/SubmissionRecap';
+
+import { AdminBilling } from '../../components/AdminBilling';
 import { ArrowLeft, ArrowRight, Package } from 'lucide-react';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 
@@ -17,6 +21,23 @@ const DentalLogisticsForm: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [viewMode, setViewMode] = useState<'form' | 'admin'>('form');
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
+
+  // Load sender profile from localStorage on mount
+  useEffect(() => {
+    const savedProfile = getSenderProfile();
+    if (savedProfile) {
+      setFormData(prev => ({
+        ...prev,
+        companyName: savedProfile.companyName,
+        email: savedProfile.email,
+        companyPhone: savedProfile.companyPhone,
+        studioHours: savedProfile.studioHours,
+        pickupLocation: savedProfile.pickupLocation,
+      }));
+    }
+  }, []);
 
   // Validation functions
   const validateEmail = (email: string): boolean => {
@@ -201,6 +222,30 @@ const DentalLogisticsForm: React.FC = () => {
         console.log('✅ Response body:', responseText);
         console.log('✅ Form submitted successfully to n8n');
         setIsSubmitted(true);
+        saveSenderProfile({
+          companyName: formData.companyName,
+          email: formData.email,
+          companyPhone: formData.companyPhone,
+          studioHours: formData.studioHours,
+          structuredHours: defaultStructuredHours,
+          pickupLocation: formData.pickupLocation,
+          lastUpdated: new Date().toISOString(),
+        });
+
+        // Save recipients to address book
+        formData.recipients.forEach(recipient => {
+          saveRecipient({
+            id: `REC_${Date.now()}_${recipient.id}`,
+            destination: recipient.destination,
+            phoneNumber: recipient.phoneNumber,
+            shippingAddress: recipient.shippingAddress,
+            deliveryTime: recipient.deliveryTime,
+            specialInstructions: recipient.specialInstructions,
+            lastUsed: new Date().toISOString(),
+          });
+        });
+
+
       } else {
         const errorText = await response.text();
         console.error('❌ Error response:', errorText);
@@ -231,26 +276,67 @@ const DentalLogisticsForm: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4 sm:p-6 flex items-center justify-center">
       <div className="w-full max-w-4xl">
+        {/* View Mode Navigation */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-white rounded-full p-1 sm:p-1.5 shadow-lg border border-gray-100 inline-flex gap-0.5 sm:gap-1">
+            <button
+              onClick={() => setViewMode('form')}
+              className={`px-3 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                viewMode === 'form'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              Nuova Richiesta
+            </button>
+            <button
+              onClick={() => {
+                if (adminAuthenticated) {
+                  setViewMode('admin');
+                } else {
+                  const pwd = window.prompt('Inserisci la password per accedere all\'amministrazione:');
+                  if (pwd === 'Drivers123@') {
+                    setAdminAuthenticated(true);
+                    setViewMode('admin');
+                  } else if (pwd !== null) {
+                    alert('Password errata.');
+                  }
+                }
+              }}
+              className={`px-3 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
+                viewMode === 'admin'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              Amministrazione
+            </button>
+
+          </div>
+        </div>
+
+        {viewMode === 'form' && (
+          <>
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-4 sm:mb-6">
           {/* Logo */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-4">
             <img 
               src="/driverslogo.png" 
               alt="Drivers Logo" 
-              className="h-18 sm:h-24 w-auto drop-shadow-sm"
+              className="h-16 sm:h-20 w-auto drop-shadow-sm"
             />
           </div>
           
-          <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            🚚 Logistica Professionale Semplificata
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+            Logistica Professionale Semplificata
           </h1>
-          <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto mb-6 font-medium">
-            <span className="text-gray-800 font-semibold">Risparmiate tempo prezioso.</span> Ritiamo dal vostro ufficio e consegniamo ovunque serva - fornitori, clienti, partner. 
+          <p className="text-base text-gray-600 leading-relaxed max-w-2xl mx-auto mb-4 font-medium">
+            <span className="text-gray-800 font-semibold">Risparmiate tempo prezioso.</span> Ritiamo dal vostro ufficio e consegniamo ovunque serva.
           </p>
           
           {/* Progress Indicator */}
-          <div className="flex justify-center mt-8">
+          <div className="flex justify-center mt-4">
             <div className="bg-white rounded-full p-2 shadow-lg border border-gray-100">
               <div className="flex items-center space-x-6 text-sm sm:text-base px-4 py-2">
                 <div className={`flex items-center transition-all duration-300 ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
@@ -296,7 +382,7 @@ const DentalLogisticsForm: React.FC = () => {
           )}
 
           {/* Navigation */}
-          <div className="border-t border-gray-100 p-8 bg-gray-50/50">
+          <div className="border-t border-gray-100 p-4 sm:p-8 bg-gray-50/50">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
               {currentStep > 1 ? (
                 <Button 
@@ -353,6 +439,14 @@ const DentalLogisticsForm: React.FC = () => {
             </div>
           </div>
         </Card>
+          </>
+        )}
+
+
+
+        {viewMode === 'admin' && (
+          <AdminBilling />
+        )}
       </div>
     </div>
   );
