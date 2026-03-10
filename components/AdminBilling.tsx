@@ -15,9 +15,28 @@ import {
   RefreshCw,
   AlertCircle,
   Search,
+  ChevronDown,
+  MapPin,
+  Clock,
+  FileText,
 } from 'lucide-react';
 
 // --- Types for API response ---
+
+interface DeliveryDetail {
+  id: string;
+  date: string;
+  pickupDate: string;
+  pickupAddress: string;
+  pickupTime: string;
+  destination: string;
+  deliveryAddress: string;
+  deliveryPhone: string;
+  deliveryTime: string;
+  specialInstructions: string;
+  generalNotes: string;
+  status: string;
+}
 
 interface BillingClient {
   name: string;
@@ -26,6 +45,7 @@ interface BillingClient {
   deliveries: number;
   pickups: number;
   dates: string[];
+  deliveryDetails: DeliveryDetail[];
 }
 
 interface BillingResponse {
@@ -356,6 +376,7 @@ const ClientCard: React.FC<{
   costPerDelivery: number;
 }> = ({ client, costPerDelivery }) => {
   const totalCost = client.deliveries * costPerDelivery;
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <Card className="bg-white shadow-lg border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow duration-200">
@@ -393,15 +414,74 @@ const ClientCard: React.FC<{
           </span>
         </div>
 
-        {/* Dates */}
-        {client.dates.length > 0 && (
+        {/* Expandable Delivery Details */}
+        {client.deliveryDetails && client.deliveryDetails.length > 0 && (
           <div className="pt-3 border-t border-gray-100">
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1.5">
-              Date attive
-            </p>
-            <p className="text-sm text-gray-600">
-              {client.dates.join(', ')}
-            </p>
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center justify-between w-full text-left group"
+            >
+              <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+                Dettaglio consegne ({client.deliveryDetails.length})
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
+                  expanded ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+            {expanded && (
+              <div className="mt-3 space-y-3">
+                {client.deliveryDetails.map((detail, i) => (
+                  <div
+                    key={detail.id || i}
+                    className="bg-gray-50 rounded-xl p-3.5 border border-gray-100"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {detail.destination || 'Consegna ' + (i + 1)}
+                      </span>
+                      <span
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                          detail.status === 'Completato'
+                            ? 'bg-green-100 text-green-700'
+                            : detail.status === 'In Corso'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                      >
+                        {detail.status}
+                      </span>
+                    </div>
+                    <div className="space-y-1.5 text-sm">
+                      {detail.deliveryAddress && (
+                        <div className="flex items-start gap-2 text-gray-600">
+                          <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gray-400" />
+                          <span>{detail.deliveryAddress}</span>
+                        </div>
+                      )}
+                      {detail.deliveryTime && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Clock className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                          <span>{detail.deliveryTime}</span>
+                        </div>
+                      )}
+                      {detail.specialInstructions && (
+                        <div className="flex items-start gap-2 text-gray-600">
+                          <FileText className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gray-400" />
+                          <span>{detail.specialInstructions}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 pt-1 text-xs text-gray-400">
+                        {detail.id && <span>{detail.id}</span>}
+                        {detail.date && <span>Richiesta: {detail.date}</span>}
+                        {detail.pickupDate && <span>Ritiro: {detail.pickupDate}</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </CardContent>
