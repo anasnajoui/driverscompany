@@ -35,6 +35,7 @@ interface DeliveryDetail {
   specialInstructions: string;
   generalNotes: string;
   status: string;
+  billingClient: string;
 }
 
 interface BillingClient {
@@ -45,6 +46,7 @@ interface BillingClient {
   pickups: number;
   dates: string[];
   deliveryDetails: DeliveryDetail[];
+  billingClient: string;
 }
 
 interface BillingResponse {
@@ -77,7 +79,8 @@ export const AdminBilling: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [costPerDelivery, setCostPerDelivery] = useState(5.0);
+  const [costPerDelivery, setCostPerDelivery] = useState(6.0);
+  const [sortAlpha, setSortAlpha] = useState(true);
 
   // Load billing config from localStorage
   useEffect(() => {
@@ -284,9 +287,17 @@ export const AdminBilling: React.FC = () => {
       {/* Client Cards */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Dettaglio Clienti
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Dettaglio Clienti
+            </h2>
+            <button
+              onClick={() => setSortAlpha(!sortAlpha)}
+              className="text-xs text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1 hover:bg-gray-50 transition-colors"
+            >
+              {sortAlpha ? 'A→Z' : 'Per consegne'}
+            </button>
+          </div>
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -299,22 +310,28 @@ export const AdminBilling: React.FC = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.clients
-            .filter((client) =>
+          {(() => {
+            const sortedClients = [...data.clients].sort((a, b) =>
+              sortAlpha ? a.name.localeCompare(b.name) : b.deliveries - a.deliveries
+            );
+            const filtered = sortedClients.filter((client) =>
               client.name.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-            .map((client, index) => (
-            <ClientCard
-              key={`${client.name}-${index}`}
-              client={client}
-              costPerDelivery={costPerDelivery}
-            />
-          ))}
-          {data.clients.filter((c) => c.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-            <div className="col-span-full text-center py-10 text-gray-400">
-              Nessun cliente trovato per "{searchQuery}"
-            </div>
-          )}
+            );
+            if (filtered.length === 0) {
+              return (
+                <div className="col-span-full text-center py-10 text-gray-400">
+                  Nessun cliente trovato per "{searchQuery}"
+                </div>
+              );
+            }
+            return filtered.map((client, index) => (
+              <ClientCard
+                key={`${client.name}-${index}`}
+                client={client}
+                costPerDelivery={costPerDelivery}
+              />
+            ));
+          })()}
         </div>
       </div>
     </div>
@@ -378,6 +395,13 @@ const ClientCard: React.FC<{
             <p className="text-sm text-gray-500">{client.phone}</p>
           )}
         </div>
+        {client.billingClient && client.billingClient !== client.name && (
+          <div className="mt-2">
+            <span className="inline-flex items-center text-xs font-medium bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">
+              Fatturare a: {client.billingClient}
+            </span>
+          </div>
+        )}
 
         {/* Stats Row */}
         <div className="flex items-center gap-4 mb-4">
@@ -419,47 +443,63 @@ const ClientCard: React.FC<{
             </button>
             {expanded && (
               <div className="mt-3 space-y-3">
+                {/* Ritiro info (orange) - show once from first detail */}
+                {client.deliveryDetails[0]?.pickupAddress && (
+                  <div className="bg-orange-50 rounded-xl p-3.5 border border-orange-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Truck className="h-3.5 w-3.5 text-orange-600" />
+                      <span className="text-xs font-semibold text-orange-700 uppercase tracking-wider">Ritiro</span>
+                    </div>
+                    <div className="space-y-1 text-sm text-orange-800">
+                      {client.deliveryDetails[0].pickupAddress && (
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-orange-500" />
+                          <span>{client.deliveryDetails[0].pickupAddress}</span>
+                        </div>
+                      )}
+                      {client.deliveryDetails[0].pickupTime && (
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+                          <span>{client.deliveryDetails[0].pickupTime}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {/* Consegne (green) */}
                 {client.deliveryDetails.map((detail, i) => (
                   <div
                     key={detail.id || i}
-                    className="bg-gray-50 rounded-xl p-3.5 border border-gray-100"
+                    className="bg-green-50 rounded-xl p-3.5 border border-green-100"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900">
-                        {detail.destination || 'Consegna ' + (i + 1)}
-                      </span>
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          detail.status === 'Completato'
-                            ? 'bg-green-100 text-green-700'
-                            : detail.status === 'In Corso'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                        }`}
-                      >
-                        {detail.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <Package className="h-3.5 w-3.5 text-green-600" />
+                        <span className="text-sm font-semibold text-green-900">
+                          {detail.destination || 'Consegna ' + (i + 1)}
+                        </span>
+                      </div>
                     </div>
                     <div className="space-y-1.5 text-sm">
                       {detail.deliveryAddress && (
-                        <div className="flex items-start gap-2 text-gray-600">
-                          <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gray-400" />
+                        <div className="flex items-start gap-2 text-green-800">
+                          <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-green-500" />
                           <span>{detail.deliveryAddress}</span>
                         </div>
                       )}
                       {detail.deliveryTime && (
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Clock className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                        <div className="flex items-center gap-2 text-green-800">
+                          <Clock className="h-3.5 w-3.5 shrink-0 text-green-500" />
                           <span>{detail.deliveryTime}</span>
                         </div>
                       )}
                       {detail.specialInstructions && (
-                        <div className="flex items-start gap-2 text-gray-600">
-                          <FileText className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gray-400" />
+                        <div className="flex items-start gap-2 text-green-800">
+                          <FileText className="h-3.5 w-3.5 mt-0.5 shrink-0 text-green-500" />
                           <span>{detail.specialInstructions}</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-3 pt-1 text-xs text-gray-400">
+                      <div className="flex items-center gap-3 pt-1 text-xs text-green-600">
                         {detail.id && <span>{detail.id}</span>}
                         {detail.date && <span>Richiesta: {detail.date}</span>}
                         {detail.pickupDate && <span>Ritiro: {detail.pickupDate}</span>}
