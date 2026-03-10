@@ -21,6 +21,7 @@ export interface FormData {
   pickupDate: string;
   pickupTime: string;
   pickupLocation: string;
+  billingClient: string;
   
   // Recipients
   recipients: Recipient[];

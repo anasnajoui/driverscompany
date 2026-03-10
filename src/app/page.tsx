@@ -35,6 +35,7 @@ const DentalLogisticsForm: React.FC = () => {
         companyPhone: savedProfile.companyPhone,
         studioHours: savedProfile.studioHours,
         pickupLocation: savedProfile.pickupLocation,
+        billingClient: savedProfile.billingClient || '',
       }));
     }
   }, []);
@@ -229,6 +230,7 @@ const DentalLogisticsForm: React.FC = () => {
           studioHours: formData.studioHours,
           structuredHours: defaultStructuredHours,
           pickupLocation: formData.pickupLocation,
+          billingClient: formData.billingClient,
           lastUpdated: new Date().toISOString(),
         });
 

@@ -70,7 +70,12 @@ export const saveStorage = (data: StorageSchema): void => {
 
 export const getSenderProfile = (): SenderProfile | null => {
   const storage = getStorage();
-  return storage.senderProfile;
+  const profile = storage.senderProfile;
+  if (!profile) return null;
+  return {
+    ...profile,
+    billingClient: profile.billingClient || '',
+  };
 };
 
 export const saveSenderProfile = (profile: SenderProfile): void => {

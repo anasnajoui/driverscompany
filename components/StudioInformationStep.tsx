@@ -5,6 +5,7 @@ import { CardHeader, CardTitle, CardContent } from './ui/card';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
+import { COMMITTENTI } from '../src/constants/formOptions';
 import PhoneInput from 'react-phone-number-input';
 import { StudioHoursSelector, defaultStructuredHours, serializeHours } from './StudioHoursSelector';
 import { getSenderProfile } from '../src/services/localStorage';
@@ -64,6 +65,27 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
           {validationErrors.companyName && (
             <p className="text-sm text-red-600 mt-1">{validationErrors.companyName}</p>
           )}
+        </div>
+
+        {/* Laboratorio Committente (opzionale) */}
+        <div>
+          <Label htmlFor="billingClient" className="text-sm font-medium text-gray-700 mb-1.5 block">
+            Laboratorio committente <span className="text-gray-400 font-normal">(opzionale)</span>
+          </Label>
+          <select
+            id="billingClient"
+            value={formData.billingClient}
+            onChange={(e) => onInputChange('billingClient', e.target.value)}
+            className="w-full px-4 h-12 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-700 transition-all duration-200"
+          >
+            <option value="">— Seleziona (se applicabile) —</option>
+            {COMMITTENTI.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+          <p className="text-sm text-gray-400 mt-1">
+            A quale laboratorio fatturare questo servizio?
+          </p>
         </div>
 
         {/* Contact */}

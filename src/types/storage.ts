@@ -21,6 +21,7 @@ export interface SenderProfile {
   studioHours: string;           // serialized string for webhook compat
   structuredHours: StructuredHours;
   pickupLocation: string;
+  billingClient?: string;
   lastUpdated: string;           // ISO timestamp
 }
 

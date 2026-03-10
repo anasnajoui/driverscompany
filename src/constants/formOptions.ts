@@ -17,6 +17,24 @@ export const initialFormData = {
   pickupDate: '',
   pickupTime: 'standard',
   pickupLocation: '',
+  billingClient: '',
   recipients: [createNewRecipient()],
   notes: '',
 }; 
+
+export const COMMITTENTI = [
+  'Bravin',
+  'Creattiva',
+  'Delpin',
+  'Dentalica',
+  'Dentalline',
+  'Dentaltre',
+  'Lovato',
+  'Mangione',
+  'Orodental',
+  'Ortolab',
+  'Pascolo',
+  'Saccher',
+  'Syntesis',
+  'Unident',
+];
