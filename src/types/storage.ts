@@ -1,3 +1,12 @@
+import { FormData } from '../types/form';
+
+export interface SavedSubmission {
+  id: string;
+  timestamp: string;
+  formData: FormData;
+  recipientCount: number;
+}
+
 export interface DaySchedule {
   isOpen: boolean;
   openTime: string;  // "HH:MM" format
@@ -48,5 +57,6 @@ export interface StorageSchema {
   senderProfile: SenderProfile | null;
   addressBook: SavedRecipient[];
 
+  submissions: SavedSubmission[];
   billingConfig: BillingConfig;
 }

@@ -1,7 +1,7 @@
 import {
   BillingConfig,
   SavedRecipient,
-
+  SavedSubmission,
   SenderProfile,
   StorageSchema,
   StructuredHours,
@@ -25,7 +25,7 @@ export const getDefaultStorage = (): StorageSchema => ({
   version: STORAGE_VERSION,
   senderProfile: null,
   addressBook: [],
-
+  submissions: [],
   billingConfig: {
     costPerDelivery: 0,
     costPerPickup: 0,
@@ -129,6 +129,25 @@ export const saveBillingConfig = (config: BillingConfig): void => {
     ...config,
     lastUpdated: new Date().toISOString(),
   };
+  saveStorage(storage);
+};
+
+export const saveSubmission = (submission: SavedSubmission): void => {
+  const storage = getStorage();
+  storage.submissions.unshift(submission);
+  if (storage.submissions.length > 50) {
+    storage.submissions = storage.submissions.slice(0, 50);
+  }
+  saveStorage(storage);
+};
+
+export const getSubmissions = (): SavedSubmission[] => {
+  return getStorage().submissions;
+};
+
+export const clearSubmissions = (): void => {
+  const storage = getStorage();
+  storage.submissions = [];
   saveStorage(storage);
 };
 
