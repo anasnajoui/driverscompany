@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FormData, Recipient } from '../types/form';
-import { getSenderProfile, saveSenderProfile, saveRecipient, saveSubmission } from '../services/localStorage';
+import { getSenderProfile, saveSenderProfile, saveRecipient } from '../services/localStorage';
 import { defaultStructuredHours } from '../../components/StudioHoursSelector';
 import { initialFormData, createNewRecipient } from '../constants/formOptions';
 import { Card } from '../../components/ui/card';
@@ -13,7 +13,6 @@ import { SubmissionRecap } from '../../components/SubmissionRecap';
 
 import { AdminBilling } from '../../components/AdminBilling';
 import { GestioneCommittenti } from '../../components/GestioneCommittenti';
-import { SubmissionHistory } from '../../components/SubmissionHistory';
 import { ArrowLeft, ArrowRight, Package } from 'lucide-react';
 import { isValidPhoneNumber } from 'libphonenumber-js';
 
@@ -23,7 +22,7 @@ const DentalLogisticsForm: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [viewMode, setViewMode] = useState<'form' | 'history' | 'admin'>('form');
+  const [viewMode, setViewMode] = useState<'form' | 'admin'>('form');
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const [adminView, setAdminView] = useState<'billing' | 'committenti'>('billing');
 
@@ -226,12 +225,6 @@ const DentalLogisticsForm: React.FC = () => {
         console.log('✅ Response body:', responseText);
         console.log('✅ Form submitted successfully to n8n');
         setIsSubmitted(true);
-        saveSubmission({
-          id: `SUB_${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          formData,
-          recipientCount: formData.recipients.length,
-        });
         saveSenderProfile({
           companyName: formData.companyName,
           email: formData.email,
@@ -300,16 +293,7 @@ const DentalLogisticsForm: React.FC = () => {
             >
               Nuova Richiesta
             </button>
-            <button
-              onClick={() => setViewMode('history')}
-              className={`px-3 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
-                viewMode === 'history'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-            >
-              Storico Richieste
-            </button>
+
             <button
               onClick={() => {
                 if (adminAuthenticated) {
@@ -494,9 +478,7 @@ const DentalLogisticsForm: React.FC = () => {
           </div>
         )}
 
-        {viewMode === 'history' && (
-          <SubmissionHistory />
-        )}
+
       </div>
     </div>
   );

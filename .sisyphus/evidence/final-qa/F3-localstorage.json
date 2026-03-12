@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "senderProfile": null,
+  "addressBook": [],
+  "submissions": [],
+  "billingConfig": {
+    "costPerDelivery": 0,
+    "costPerPickup": 0,
+    "lastUpdated": ""
+  }
+}

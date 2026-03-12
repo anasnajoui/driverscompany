@@ -1,0 +1,14 @@
+{
+  "task": "1-seed-COMMITTENTI-tab",
+  "status": "success",
+  "timestamp": "2026-03-12T11:11:00Z",
+  "seedWorkflowId": "gGa7CnCuDOpcpDNq",
+  "workflowName": "[DriversCompany] Committenti Seed",
+  "webhookResponse": {"success": true, "seeded": 14, "tabName": "COMMITTENTI"},
+  "spreadsheetId": "1CMlvDX86A2gJUcckjwBWvANKbXlAeYcyjGhnM955fQw",
+  "tabName": "COMMITTENTI",
+  "rows": 14,
+  "header": "NOME",
+  "names": ["Bravin","Creattiva","Delpin","Dentalica","Dentalline","Dentaltre","Lovato","Mangione","Orodental","Ortolab","Pascolo","Saccher","Syntesis","Unident"],
+  "workflowStatus": "deactivated (one-time seed)"
+}

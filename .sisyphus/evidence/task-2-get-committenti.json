@@ -1,0 +1,14 @@
+{
+  "task": "2-GET-committenti-API",
+  "status": "success",
+  "workflowId": "LhGpmSNTvsyRQM2V",
+  "workflowName": "[DriversCompany] Committenti API",
+  "webhookUrl": "https://n8n.madani.agency/webhook/committenti",
+  "method": "GET",
+  "response": {"committenti": ["Bravin","Creattiva","Delpin","Dentalica","Dentalline","Dentaltre","Lovato","Mangione","Orodental","Ortolab","Pascolo","Saccher","Syntesis","Unident"]},
+  "count": 14,
+  "sorted": true,
+  "firstElement": "Bravin",
+  "lastElement": "Unident",
+  "active": true
+}

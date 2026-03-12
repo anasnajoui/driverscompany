@@ -1,0 +1,16 @@
+{
+  "task": "3-POST-committenti-manage",
+  "status": "success",
+  "workflowId": "IjFKg5ITfH85eBZS",
+  "workflowName": "[DriversCompany] Committenti Manage",
+  "webhookUrl": "https://n8n.madani.agency/webhook/committenti-manage",
+  "method": "POST",
+  "tests": {
+    "add_ZetaLab": {"input": {"action":"add","name":"ZetaLab"}, "response": {"success":true,"count":15}, "passed": true},
+    "remove_ZetaLab": {"input": {"action":"remove","name":"ZetaLab"}, "response": {"success":true,"count":14}, "passed": true},
+    "duplicate_Bravin": {"input": {"action":"add","name":"Bravin"}, "response": {"success":false,"error":"\"Bravin\" esiste già nella lista"}, "passed": true},
+    "empty_name": {"input": {"action":"add","name":""}, "response": {"success":false,"error":"Il nome non può essere vuoto"}, "passed": true}
+  },
+  "allTestsPassed": true,
+  "active": true
+}
