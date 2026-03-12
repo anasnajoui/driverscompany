@@ -12,6 +12,7 @@ import { RecipientsDeliveryStep } from '../../components/RecipientsDeliveryStep'
 import { SubmissionRecap } from '../../components/SubmissionRecap';
 
 import { AdminBilling } from '../../components/AdminBilling';
+import { GestioneCommittenti } from '../../components/GestioneCommittenti';
 import { SubmissionHistory } from '../../components/SubmissionHistory';
 import { ArrowLeft, ArrowRight, Package } from 'lucide-react';
 import { isValidPhoneNumber } from 'libphonenumber-js';
@@ -24,6 +25,7 @@ const DentalLogisticsForm: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [viewMode, setViewMode] = useState<'form' | 'history' | 'admin'>('form');
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
+  const [adminView, setAdminView] = useState<'billing' | 'committenti'>('billing');
 
   // Load sender profile from localStorage on mount
   useEffect(() => {
@@ -464,7 +466,32 @@ const DentalLogisticsForm: React.FC = () => {
 
 
         {viewMode === 'admin' && (
-          <AdminBilling />
+          <div className="space-y-6">
+            <div className="flex gap-2 bg-white rounded-2xl shadow-sm p-1.5 w-fit">
+              <button
+                onClick={() => setAdminView('billing')}
+                className={`px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  adminView === 'billing'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Fatturazione
+              </button>
+              <button
+                onClick={() => setAdminView('committenti')}
+                className={`px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  adminView === 'committenti'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Gestione Committenti
+              </button>
+            </div>
+            {adminView === 'billing' && <AdminBilling />}
+            {adminView === 'committenti' && <GestioneCommittenti />}
+          </div>
         )}
 
         {viewMode === 'history' && (

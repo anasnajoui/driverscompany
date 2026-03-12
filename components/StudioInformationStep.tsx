@@ -10,6 +10,8 @@ import PhoneInput from 'react-phone-number-input';
 import { StudioHoursSelector, defaultStructuredHours, serializeHours } from './StudioHoursSelector';
 import { getSenderProfile } from '../src/services/localStorage';
 
+const COMMITTENTI_API_URL = 'https://n8n.madani.agency/webhook/committenti';
+
 interface StudioInformationStepProps {
   formData: FormData;
   onInputChange: (field: keyof Omit<FormData, 'recipients'>, value: any) => void;
@@ -23,6 +25,25 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
 }) => {
   const today = new Date().toISOString().split('T')[0];
   const [structuredHours, setStructuredHours] = useState<StructuredHours>(defaultStructuredHours);
+  const [committentiList, setCommittentiList] = useState<string[]>(COMMITTENTI);
+  const [committentiLoading, setCommittentiLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(COMMITTENTI_API_URL)
+      .then(res => res.json())
+      .then((data: { committenti?: string[] }) => {
+        if (!cancelled && Array.isArray(data.committenti) && data.committenti.length > 0) {
+          setCommittentiList(data.committenti);
+        }
+      })
+      .catch(() => {
+      })
+      .finally(() => {
+        if (!cancelled) setCommittentiLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const profile = getSenderProfile();
@@ -79,9 +100,13 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
             className="w-full px-4 h-12 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-700 transition-all duration-200"
           >
             <option value="">— Seleziona (se applicabile) —</option>
-            {COMMITTENTI.map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
+            {committentiLoading ? (
+              <option value="" disabled>Caricamento...</option>
+            ) : (
+              committentiList.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))
+            )}
           </select>
           <p className="text-sm text-gray-400 mt-1">
             A quale laboratorio fatturare questo servizio?
