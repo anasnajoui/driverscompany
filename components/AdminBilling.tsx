@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { normalizeCommittenteName } from '../src/constants/formOptions';
 import { getBillingConfig, saveBillingConfig } from '../src/services/localStorage';
 import { BillingConfig } from '../src/types/storage';
 import {
@@ -395,10 +396,10 @@ const ClientCard: React.FC<{
             <p className="text-sm text-gray-500">{client.phone}</p>
           )}
         </div>
-        {client.billingClient && client.billingClient !== client.name && (
+        {client.billingClient && normalizeCommittenteName(client.billingClient) !== normalizeCommittenteName(client.name) && (
           <div className="mt-2">
             <span className="inline-flex items-center text-xs font-medium bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">
-              Fatturare a: {client.billingClient}
+              Fatturare a: {normalizeCommittenteName(client.billingClient)}
             </span>
           </div>
         )}

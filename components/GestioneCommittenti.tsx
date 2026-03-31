@@ -5,16 +5,44 @@ import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Plus, X, Building2, AlertCircle, Check } from 'lucide-react';
+import { normalizeCommittenteKey, normalizeCommittenteName } from '../src/constants/formOptions';
 
 // --- Constants ---
 
 const COMMITTENTI_API_URL = 'https://n8n.madani.agency/webhook/committenti';
 const MANAGE_API_URL = 'https://n8n.madani.agency/webhook/committenti-manage';
 
+interface CommittenteEntry {
+  rawName: string;
+  displayName: string;
+}
+
+const normalizeCommittenteEntries = (names: string[]): CommittenteEntry[] => {
+  const seen = new Set<string>();
+
+  return names.reduce<CommittenteEntry[]>((acc, name) => {
+    const rawName = name.trim();
+    const displayName = normalizeCommittenteName(rawName);
+
+    if (!rawName || !displayName) {
+      return acc;
+    }
+
+    const normalizedKey = normalizeCommittenteKey(displayName);
+    if (seen.has(normalizedKey)) {
+      return acc;
+    }
+
+    seen.add(normalizedKey);
+    acc.push({ rawName, displayName });
+    return acc;
+  }, []);
+};
+
 // --- Component ---
 
 export const GestioneCommittenti: React.FC = () => {
-  const [committenti, setCommittenti] = useState<string[]>([]);
+  const [committenti, setCommittenti] = useState<CommittenteEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
@@ -31,7 +59,7 @@ export const GestioneCommittenti: React.FC = () => {
       const response = await fetch(COMMITTENTI_API_URL);
       if (!response.ok) throw new Error(`Errore HTTP: ${response.status}`);
       const data: { committenti: string[] } = await response.json();
-      setCommittenti(data.committenti);
+      setCommittenti(normalizeCommittenteEntries(data.committenti));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Errore sconosciuto';
       setError(`Impossibile caricare i committenti: ${message}`);
@@ -59,7 +87,7 @@ export const GestioneCommittenti: React.FC = () => {
 
   // Add handler
   const handleAdd = async () => {
-    const trimmed = newName.trim();
+    const trimmed = normalizeCommittenteName(newName);
     if (!trimmed) {
       showError('Il nome non può essere vuoto');
       return;
@@ -73,7 +101,7 @@ export const GestioneCommittenti: React.FC = () => {
       });
       const data: { success: boolean; committenti?: string[]; error?: string } = await response.json();
       if (data.success && data.committenti) {
-        setCommittenti(data.committenti);
+        setCommittenti(normalizeCommittenteEntries(data.committenti));
         setNewName('');
         showSuccess(`"${trimmed}" aggiunto con successo`);
       } else {
@@ -87,18 +115,18 @@ export const GestioneCommittenti: React.FC = () => {
   };
 
   // Remove handler
-  const handleRemove = async (name: string) => {
-    setRemovingName(name);
+  const handleRemove = async ({ rawName, displayName }: CommittenteEntry) => {
+    setRemovingName(displayName);
     try {
       const response = await fetch(MANAGE_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'remove', name }),
+        body: JSON.stringify({ action: 'remove', name: rawName }),
       });
       const data: { success: boolean; committenti?: string[]; error?: string } = await response.json();
       if (data.success && data.committenti) {
-        setCommittenti(data.committenti);
-        showSuccess(`"${name}" rimosso con successo`);
+        setCommittenti(normalizeCommittenteEntries(data.committenti));
+        showSuccess(`"${displayName}" rimosso con successo`);
       } else {
         showError(data.error || 'Errore durante la rimozione');
       }
@@ -167,7 +195,7 @@ export const GestioneCommittenti: React.FC = () => {
         <div className="flex gap-3 mb-8">
           <Input
             value={newName}
-            onChange={(e) => setNewName(e.target.value)}
+            onChange={(e) => setNewName(normalizeCommittenteName(e.target.value))}
             onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
             placeholder="Nome del committente..."
             className="border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 h-12 transition-all duration-200"
@@ -191,17 +219,17 @@ export const GestioneCommittenti: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-2">
-            {committenti.map((name) => (
+            {committenti.map((entry) => (
               <div
-                key={name}
+                key={entry.displayName}
                 className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
               >
-                <span className="text-gray-800 font-medium">{name}</span>
+                <span className="text-gray-800 font-medium">{entry.displayName}</span>
                 <button
-                  onClick={() => handleRemove(name)}
-                  disabled={removingName === name}
+                  onClick={() => handleRemove(entry)}
+                  disabled={removingName === entry.displayName}
                   className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg p-1.5 transition-colors disabled:opacity-40"
-                  aria-label={`Rimuovi ${name}`}
+                  aria-label={`Rimuovi ${entry.displayName}`}
                 >
                   <X className="h-4 w-4" />
                 </button>
