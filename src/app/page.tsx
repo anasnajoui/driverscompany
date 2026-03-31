@@ -4,7 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { FormData, Recipient } from '../types/form';
 import { getSenderProfile, saveSenderProfile, saveRecipient } from '../services/localStorage';
 import { defaultStructuredHours } from '../../components/StudioHoursSelector';
-import { initialFormData, createNewRecipient } from '../constants/formOptions';
+import {
+  createNewRecipient,
+  initialFormData,
+  normalizeCommittenteName,
+} from '../constants/formOptions';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { StudioInformationStep } from '../../components/StudioInformationStep';
@@ -37,7 +41,7 @@ const DentalLogisticsForm: React.FC = () => {
         companyPhone: savedProfile.companyPhone,
         studioHours: savedProfile.studioHours,
         pickupLocation: savedProfile.pickupLocation,
-        billingClient: savedProfile.billingClient || '',
+        billingClient: normalizeCommittenteName(savedProfile.billingClient || ''),
       }));
     }
   }, []);
@@ -90,6 +94,10 @@ const DentalLogisticsForm: React.FC = () => {
       errors.pickupLocation = 'Indirizzo ritiro obbligatorio';
     }
 
+    if (!formData.billingClient.trim()) {
+      errors.billingClient = 'Laboratorio committente obbligatorio';
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -126,7 +134,11 @@ const DentalLogisticsForm: React.FC = () => {
 
   // Form data handlers
   const handleInputChange = (field: keyof Omit<FormData, 'recipients'>, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const nextValue = field === 'billingClient' && typeof value === 'string'
+      ? normalizeCommittenteName(value)
+      : value;
+
+    setFormData(prev => ({ ...prev, [field]: nextValue }));
     
     // Clear validation error for this field
     if (validationErrors[field]) {
@@ -138,8 +150,8 @@ const DentalLogisticsForm: React.FC = () => {
     }
 
     // Real-time validation for phone numbers
-    if (field === 'companyPhone' && value) {
-      if (!validatePhone(value)) {
+    if (field === 'companyPhone' && nextValue) {
+      if (!validatePhone(nextValue)) {
         setValidationErrors(prev => ({
           ...prev,
           [field]: 'Formato telefono non valido'
@@ -148,8 +160,8 @@ const DentalLogisticsForm: React.FC = () => {
     }
 
     // Real-time validation for email
-    if (field === 'email' && value) {
-      if (!validateEmail(value)) {
+    if (field === 'email' && nextValue) {
+      if (!validateEmail(nextValue)) {
         setValidationErrors(prev => ({
           ...prev,
           [field]: 'Formato email non valido'
@@ -232,7 +244,7 @@ const DentalLogisticsForm: React.FC = () => {
           studioHours: formData.studioHours,
           structuredHours: defaultStructuredHours,
           pickupLocation: formData.pickupLocation,
-          billingClient: formData.billingClient,
+          billingClient: normalizeCommittenteName(formData.billingClient),
           lastUpdated: new Date().toISOString(),
         });
 

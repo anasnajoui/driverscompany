@@ -5,7 +5,12 @@ import { CardHeader, CardTitle, CardContent } from './ui/card';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import { COMMITTENTI } from '../src/constants/formOptions';
+import {
+  COMMITTENTI,
+  normalizeCommittenteKey,
+  normalizeCommittenteName,
+  normalizeCommittentiList,
+} from '../src/constants/formOptions';
 import PhoneInput from 'react-phone-number-input';
 import { StudioHoursSelector, defaultStructuredHours, serializeHours } from './StudioHoursSelector';
 import { getSenderProfile } from '../src/services/localStorage';
@@ -25,7 +30,7 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
 }) => {
   const today = new Date().toISOString().split('T')[0];
   const [structuredHours, setStructuredHours] = useState<StructuredHours>(defaultStructuredHours);
-  const [committentiList, setCommittentiList] = useState<string[]>(COMMITTENTI);
+  const [committentiList, setCommittentiList] = useState<string[]>(normalizeCommittentiList(COMMITTENTI));
   const [committentiLoading, setCommittentiLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +39,13 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
       .then(res => res.json())
       .then((data: { committenti?: string[] }) => {
         if (!cancelled && Array.isArray(data.committenti) && data.committenti.length > 0) {
-          setCommittentiList(data.committenti);
+          setCommittentiList(
+            normalizeCommittentiList([
+              ...data.committenti,
+              ...COMMITTENTI,
+              ...(formData.billingClient ? [formData.billingClient] : []),
+            ])
+          );
         }
       })
       .catch(() => {
@@ -44,6 +55,27 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
       });
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!formData.billingClient) {
+      return;
+    }
+
+    setCommittentiList(prev => normalizeCommittentiList([...prev, formData.billingClient]));
+  }, [formData.billingClient]);
+
+  useEffect(() => {
+    if (!formData.billingClient) {
+      return;
+    }
+
+    const currentKey = normalizeCommittenteKey(formData.billingClient);
+    const matchingCommittente = committentiList.find((name) => normalizeCommittenteKey(name) === currentKey);
+
+    if (matchingCommittente && matchingCommittente !== formData.billingClient) {
+      onInputChange('billingClient', matchingCommittente);
+    }
+  }, [committentiList, formData.billingClient, onInputChange]);
 
   useEffect(() => {
     const profile = getSenderProfile();
@@ -88,18 +120,22 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
           )}
         </div>
 
-        {/* Laboratorio Committente (opzionale) */}
         <div>
           <Label htmlFor="billingClient" className="text-sm font-medium text-gray-700 mb-1.5 block">
-            Laboratorio committente <span className="text-gray-400 font-normal">(opzionale)</span>
+            Laboratorio committente *
           </Label>
           <select
             id="billingClient"
             value={formData.billingClient}
-            onChange={(e) => onInputChange('billingClient', e.target.value)}
-            className="w-full px-4 h-12 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-gray-700 transition-all duration-200"
+            onChange={(e) => onInputChange('billingClient', normalizeCommittenteName(e.target.value))}
+            className={`w-full px-4 h-12 border rounded-xl focus:ring-2 focus:outline-none text-gray-700 transition-all duration-200 ${
+              validationErrors.billingClient
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-100'
+                : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100'
+            }`}
+            required
           >
-            <option value="">— Seleziona (se applicabile) —</option>
+            <option value="">— Seleziona il laboratorio committente —</option>
             {committentiLoading ? (
               <option value="" disabled>Caricamento...</option>
             ) : (
@@ -108,9 +144,13 @@ export const StudioInformationStep: React.FC<StudioInformationStepProps> = ({
               ))
             )}
           </select>
-          <p className="text-sm text-gray-400 mt-1">
-            A quale laboratorio fatturare questo servizio?
-          </p>
+          {validationErrors.billingClient ? (
+            <p className="text-sm text-red-600 mt-1">{validationErrors.billingClient}</p>
+          ) : (
+            <p className="text-sm text-gray-400 mt-1">
+              Seleziona il laboratorio committente per proseguire.
+            </p>
+          )}
         </div>
 
         {/* Contact */}
