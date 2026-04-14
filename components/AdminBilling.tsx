@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { normalizeCommittenteName } from '../src/constants/formOptions';
 import { getBillingConfig, saveBillingConfig } from '../src/services/localStorage';
 import { BillingConfig } from '../src/types/storage';
 import {
@@ -27,6 +26,7 @@ interface DeliveryDetail {
   id: string;
   date: string;
   pickupDate: string;
+  studioName?: string;
   pickupAddress: string;
   pickupTime: string;
   destination: string;
@@ -39,13 +39,22 @@ interface DeliveryDetail {
   billingClient: string;
 }
 
+interface PickupDetail {
+  pickupDate: string;
+  pickupAddress: string;
+  pickupTime: string;
+}
+
 interface BillingClient {
   name: string;
-  email: string;
-  phone: string;
+  studios?: string[];
+  email?: string;
+  phone?: string;
   deliveries: number;
   pickups: number;
+  totalServices?: number;
   dates: string[];
+  pickupDetails?: PickupDetail[];
   deliveryDetails: DeliveryDetail[];
   billingClient: string;
 }
@@ -55,6 +64,7 @@ interface BillingResponse {
   totalClients: number;
   totalDeliveries: number;
   totalPickups: number;
+  totalServices?: number;
   clients: BillingClient[];
 }
 
@@ -81,6 +91,7 @@ export const AdminBilling: React.FC = () => {
   const [showConfig, setShowConfig] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [costPerDelivery, setCostPerDelivery] = useState(6.0);
+  const [costPerPickup, setCostPerPickup] = useState(6.0);
   const [sortAlpha, setSortAlpha] = useState(true);
 
   // Load billing config from localStorage
@@ -88,6 +99,11 @@ export const AdminBilling: React.FC = () => {
     const config = getBillingConfig();
     if (config.costPerDelivery > 0) {
       setCostPerDelivery(config.costPerDelivery);
+    }
+    if (config.costPerPickup > 0) {
+      setCostPerPickup(config.costPerPickup);
+    } else if (config.costPerDelivery > 0) {
+      setCostPerPickup(config.costPerDelivery);
     }
   }, []);
 
@@ -126,7 +142,7 @@ export const AdminBilling: React.FC = () => {
   const handleSaveCostConfig = () => {
     const config: BillingConfig = {
       costPerDelivery,
-      costPerPickup: 0,
+      costPerPickup,
       lastUpdated: new Date().toISOString(),
     };
     saveBillingConfig(config);
@@ -193,7 +209,8 @@ export const AdminBilling: React.FC = () => {
   }
 
   // --- Render: Dashboard ---
-  const totalRevenue = data.totalDeliveries * costPerDelivery;
+  const totalRevenue =
+    data.totalDeliveries * costPerDelivery + data.totalPickups * costPerPickup;
 
   return (
     <div className="space-y-6">
@@ -274,6 +291,25 @@ export const AdminBilling: React.FC = () => {
                   className="rounded-xl border-2 border-gray-200 h-11 w-full sm:w-48"
                 />
               </div>
+              <div className="flex-1 w-full sm:w-auto">
+                <label
+                  htmlFor="costPerPickup"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
+                >
+                  Costo per ritiro (€)
+                </label>
+                <Input
+                  id="costPerPickup"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={costPerPickup}
+                  onChange={(e) =>
+                    setCostPerPickup(parseFloat(e.target.value) || 0)
+                  }
+                  className="rounded-xl border-2 border-gray-200 h-11 w-full sm:w-48"
+                />
+              </div>
               <Button
                 onClick={handleSaveCostConfig}
                 className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-6"
@@ -313,10 +349,16 @@ export const AdminBilling: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(() => {
             const sortedClients = [...data.clients].sort((a, b) =>
-              sortAlpha ? a.name.localeCompare(b.name) : b.deliveries - a.deliveries
+              sortAlpha
+                ? a.name.localeCompare(b.name)
+                : (b.totalServices ?? b.deliveries + b.pickups) -
+                  (a.totalServices ?? a.deliveries + a.pickups)
             );
             const filtered = sortedClients.filter((client) =>
-              client.name.toLowerCase().includes(searchQuery.toLowerCase())
+              client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              (client.studios || []).some((studio) =>
+                studio.toLowerCase().includes(searchQuery.toLowerCase())
+              )
             );
             if (filtered.length === 0) {
               return (
@@ -330,6 +372,7 @@ export const AdminBilling: React.FC = () => {
                 key={`${client.name}-${index}`}
                 client={client}
                 costPerDelivery={costPerDelivery}
+                costPerPickup={costPerPickup}
               />
             ));
           })()}
@@ -379,8 +422,10 @@ const SummaryCard: React.FC<{
 const ClientCard: React.FC<{
   client: BillingClient;
   costPerDelivery: number;
-}> = ({ client, costPerDelivery }) => {
-  const totalCost = client.deliveries * costPerDelivery;
+  costPerPickup: number;
+}> = ({ client, costPerDelivery, costPerPickup }) => {
+  const totalCost =
+    client.deliveries * costPerDelivery + client.pickups * costPerPickup;
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -389,6 +434,11 @@ const ClientCard: React.FC<{
         {/* Client Header */}
         <div className="mb-4">
           <h3 className="text-base font-bold text-gray-900">{client.name}</h3>
+          {client.studios && client.studios.length > 0 && (
+            <p className="text-sm text-gray-500 mt-1">
+              Studi collegati: {client.studios.join(', ')}
+            </p>
+          )}
           {client.email && (
             <p className="text-sm text-gray-500 mt-0.5">{client.email}</p>
           )}
@@ -396,14 +446,6 @@ const ClientCard: React.FC<{
             <p className="text-sm text-gray-500">{client.phone}</p>
           )}
         </div>
-        {client.billingClient && normalizeCommittenteName(client.billingClient) !== normalizeCommittenteName(client.name) && (
-          <div className="mt-2">
-            <span className="inline-flex items-center text-xs font-medium bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg">
-              Fatturare a: {normalizeCommittenteName(client.billingClient)}
-            </span>
-          </div>
-        )}
-
         {/* Stats Row */}
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
@@ -413,6 +455,10 @@ const ClientCard: React.FC<{
           <div className="flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
             <Truck className="h-3.5 w-3.5" />
             {client.pickups} ritiri
+          </div>
+          <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
+            <span className="text-xs font-bold">Σ</span>
+            {client.totalServices ?? client.deliveries + client.pickups} servizi
           </div>
         </div>
 
@@ -444,29 +490,39 @@ const ClientCard: React.FC<{
             </button>
             {expanded && (
               <div className="mt-3 space-y-3">
-                {/* Ritiro info (orange) - show once from first detail */}
-                {client.deliveryDetails[0]?.pickupAddress && (
-                  <div className="bg-orange-50 rounded-xl p-3.5 border border-orange-100">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Truck className="h-3.5 w-3.5 text-orange-600" />
-                      <span className="text-xs font-semibold text-orange-700 uppercase tracking-wider">Ritiro</span>
+                {client.pickupDetails && client.pickupDetails.length > 0 &&
+                  client.pickupDetails.map((pickup, index) => (
+                    <div
+                      key={`${pickup.pickupDate}-${pickup.pickupAddress}-${index}`}
+                      className="bg-orange-50 rounded-xl p-3.5 border border-orange-100"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Truck className="h-3.5 w-3.5 text-orange-600" />
+                        <span className="text-xs font-semibold text-orange-700 uppercase tracking-wider">
+                          Ritiro {client.pickupDetails && client.pickupDetails.length > 1 ? index + 1 : ''}
+                        </span>
+                      </div>
+                      <div className="space-y-1 text-sm text-orange-800">
+                        {pickup.pickupAddress && (
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-orange-500" />
+                            <span>{pickup.pickupAddress}</span>
+                          </div>
+                        )}
+                        {pickup.pickupTime && (
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+                            <span>{pickup.pickupTime}</span>
+                          </div>
+                        )}
+                        {pickup.pickupDate && (
+                          <div className="flex items-center gap-2 text-xs text-orange-700 pt-1">
+                            <span>Data ritiro: {pickup.pickupDate}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="space-y-1 text-sm text-orange-800">
-                      {client.deliveryDetails[0].pickupAddress && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-orange-500" />
-                          <span>{client.deliveryDetails[0].pickupAddress}</span>
-                        </div>
-                      )}
-                      {client.deliveryDetails[0].pickupTime && (
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-3.5 w-3.5 shrink-0 text-orange-500" />
-                          <span>{client.deliveryDetails[0].pickupTime}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                  ))}
                 {/* Consegne (green) */}
                 {client.deliveryDetails.map((detail, i) => (
                   <div
@@ -479,6 +535,9 @@ const ClientCard: React.FC<{
                         <span className="text-sm font-semibold text-green-900">
                           {detail.destination || 'Consegna ' + (i + 1)}
                         </span>
+                        {detail.studioName && (
+                          <span className="text-xs text-gray-500 ml-1">({detail.studioName})</span>
+                        )}
                       </div>
                     </div>
                     <div className="space-y-1.5 text-sm">
