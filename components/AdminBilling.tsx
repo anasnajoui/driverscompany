@@ -90,20 +90,14 @@ export const AdminBilling: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [costPerDelivery, setCostPerDelivery] = useState(6.0);
-  const [costPerPickup, setCostPerPickup] = useState(6.0);
+  const [costPerService, setCostPerService] = useState(6.0);
   const [sortAlpha, setSortAlpha] = useState(true);
 
   // Load billing config from localStorage
   useEffect(() => {
     const config = getBillingConfig();
     if (config.costPerDelivery > 0) {
-      setCostPerDelivery(config.costPerDelivery);
-    }
-    if (config.costPerPickup > 0) {
-      setCostPerPickup(config.costPerPickup);
-    } else if (config.costPerDelivery > 0) {
-      setCostPerPickup(config.costPerDelivery);
+      setCostPerService(config.costPerDelivery);
     }
   }, []);
 
@@ -141,8 +135,8 @@ export const AdminBilling: React.FC = () => {
   // Save cost config
   const handleSaveCostConfig = () => {
     const config: BillingConfig = {
-      costPerDelivery,
-      costPerPickup,
+      costPerDelivery: costPerService,
+      costPerPickup: 0,
       lastUpdated: new Date().toISOString(),
     };
     saveBillingConfig(config);
@@ -209,8 +203,7 @@ export const AdminBilling: React.FC = () => {
   }
 
   // --- Render: Dashboard ---
-  const totalRevenue =
-    data.totalDeliveries * costPerDelivery + data.totalPickups * costPerPickup;
+  const totalRevenue = data.totalDeliveries * costPerService;
 
   return (
     <div className="space-y-6">
@@ -229,14 +222,14 @@ export const AdminBilling: React.FC = () => {
         <SummaryCard
           icon={<Package className="h-6 w-6 text-green-600" />}
           value={data.totalDeliveries}
-          label="Totale Consegne"
+          label="Totale Servizi"
           bgClass="bg-green-50"
           borderClass="border-green-100"
         />
         <SummaryCard
           icon={<Truck className="h-6 w-6 text-orange-600" />}
           value={data.totalPickups}
-          label="Totale Ritiri"
+          label="Ritiri (informativo)"
           bgClass="bg-orange-50"
           borderClass="border-orange-100"
         />
@@ -274,38 +267,19 @@ export const AdminBilling: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
               <div className="flex-1 w-full sm:w-auto">
                 <label
-                  htmlFor="costPerDelivery"
+                  htmlFor="costPerService"
                   className="block text-sm font-medium text-gray-700 mb-1.5"
                 >
-                  Costo per consegna (€)
+                  Costo per servizio (€)
                 </label>
                 <Input
-                  id="costPerDelivery"
+                  id="costPerService"
                   type="number"
                   step="0.01"
                   min="0"
-                  value={costPerDelivery}
+                  value={costPerService}
                   onChange={(e) =>
-                    setCostPerDelivery(parseFloat(e.target.value) || 0)
-                  }
-                  className="rounded-xl border-2 border-gray-200 h-11 w-full sm:w-48"
-                />
-              </div>
-              <div className="flex-1 w-full sm:w-auto">
-                <label
-                  htmlFor="costPerPickup"
-                  className="block text-sm font-medium text-gray-700 mb-1.5"
-                >
-                  Costo per ritiro (€)
-                </label>
-                <Input
-                  id="costPerPickup"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={costPerPickup}
-                  onChange={(e) =>
-                    setCostPerPickup(parseFloat(e.target.value) || 0)
+                    setCostPerService(parseFloat(e.target.value) || 0)
                   }
                   className="rounded-xl border-2 border-gray-200 h-11 w-full sm:w-48"
                 />
@@ -332,7 +306,7 @@ export const AdminBilling: React.FC = () => {
               onClick={() => setSortAlpha(!sortAlpha)}
               className="text-xs text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1 hover:bg-gray-50 transition-colors"
             >
-              {sortAlpha ? 'A→Z' : 'Per consegne'}
+              {sortAlpha ? 'A→Z' : 'Per servizi'}
             </button>
           </div>
           <div className="relative w-full sm:w-72">
@@ -351,8 +325,7 @@ export const AdminBilling: React.FC = () => {
             const sortedClients = [...data.clients].sort((a, b) =>
               sortAlpha
                 ? a.name.localeCompare(b.name)
-                : (b.totalServices ?? b.deliveries + b.pickups) -
-                  (a.totalServices ?? a.deliveries + a.pickups)
+                : b.deliveries - a.deliveries
             );
             const filtered = sortedClients.filter((client) =>
               client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -371,8 +344,7 @@ export const AdminBilling: React.FC = () => {
               <ClientCard
                 key={`${client.name}-${index}`}
                 client={client}
-                costPerDelivery={costPerDelivery}
-                costPerPickup={costPerPickup}
+                costPerService={costPerService}
               />
             ));
           })()}
@@ -421,11 +393,9 @@ const SummaryCard: React.FC<{
 
 const ClientCard: React.FC<{
   client: BillingClient;
-  costPerDelivery: number;
-  costPerPickup: number;
-}> = ({ client, costPerDelivery, costPerPickup }) => {
-  const totalCost =
-    client.deliveries * costPerDelivery + client.pickups * costPerPickup;
+  costPerService: number;
+}> = ({ client, costPerService }) => {
+  const totalCost = client.deliveries * costPerService;
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -450,15 +420,11 @@ const ClientCard: React.FC<{
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
             <Package className="h-3.5 w-3.5" />
-            {client.deliveries} consegne
+            {client.deliveries} servizi
           </div>
           <div className="flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
             <Truck className="h-3.5 w-3.5" />
             {client.pickups} ritiri
-          </div>
-          <div className="flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
-            <span className="text-xs font-bold">Σ</span>
-            {client.totalServices ?? client.deliveries + client.pickups} servizi
           </div>
         </div>
 
@@ -480,7 +446,7 @@ const ClientCard: React.FC<{
               className="flex items-center justify-between w-full text-left group"
             >
               <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
-                Dettaglio consegne ({client.deliveryDetails.length})
+                Dettaglio servizi ({client.deliveryDetails.length})
               </span>
               <ChevronDown
                 className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
