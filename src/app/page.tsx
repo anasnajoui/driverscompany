@@ -14,6 +14,7 @@ import { Button } from '../../components/ui/button';
 import { StudioInformationStep } from '../../components/StudioInformationStep';
 import { RecipientsDeliveryStep } from '../../components/RecipientsDeliveryStep';
 import { SubmissionRecap } from '../../components/SubmissionRecap';
+import { RequestCancellationView } from '../../components/RequestCancellationView';
 
 import { AdminBilling } from '../../components/AdminBilling';
 import { GestioneCommittenti } from '../../components/GestioneCommittenti';
@@ -26,9 +27,10 @@ const DentalLogisticsForm: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [viewMode, setViewMode] = useState<'form' | 'admin'>('form');
+  const [viewMode, setViewMode] = useState<'form' | 'admin' | 'cancel'>('form');
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const [adminView, setAdminView] = useState<'billing' | 'committenti'>('billing');
+  const [cancellationRequestId, setCancellationRequestId] = useState('');
 
   // Load sender profile from localStorage on mount
   useEffect(() => {
@@ -43,6 +45,19 @@ const DentalLogisticsForm: React.FC = () => {
         pickupLocation: savedProfile.pickupLocation,
         billingClient: normalizeCommittenteName(savedProfile.billingClient || ''),
       }));
+    }
+  }, []);
+
+  // Detect cancellation URL on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    const requestId = params.get('requestId');
+    if (action === 'cancel' && requestId) {
+      setCancellationRequestId(requestId);
+      setViewMode('cancel');
+      setIsSubmitted(false);
     }
   }, []);
 
@@ -283,6 +298,26 @@ const DentalLogisticsForm: React.FC = () => {
     setIsSubmitted(false);
     setValidationErrors({});
   };
+
+  const handleBackToFormFromCancellation = () => {
+    setViewMode('form');
+    setCancellationRequestId('');
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('action');
+      url.searchParams.delete('requestId');
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
+
+  if (viewMode === 'cancel' && cancellationRequestId) {
+    return (
+      <RequestCancellationView
+        requestId={cancellationRequestId}
+        onBackToForm={handleBackToFormFromCancellation}
+      />
+    );
+  }
 
   // Show submission recap if form is submitted
   if (isSubmitted) {
